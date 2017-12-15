@@ -1,0 +1,17 @@
+lib/
+out/
+.log
+.idea/
+target/
+
+# ignore some yago native folders
+data/uwn4yago
+data/wordnet
+data/wordnetDomains
+
+.imp
+
+wikicommons-1c391c623d29.json
+output_per_img.tsv
+output_per_tag.tsv
+config.properties
