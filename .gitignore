@@ -1,6 +1,5 @@
 lib/
 out/
-.log
 .idea/
 target/
 
@@ -9,7 +8,8 @@ data/uwn4yago
 data/wordnet
 data/wordnetDomains
 
-.iml
+*.log
+*.iml
 
 wikicommons-1c391c623d29.json
 output_per_img.tsv

@@ -440,7 +440,7 @@ public class ParallelCaller {
 
   /** Run */
   public static void main(String[] args) throws Exception {
-    String initFile = args.length == 0 ? "./configuration/yago.ini" : args[0];
+    String initFile = args.length == 0 ? "./src/main/resources/yago.ini" : args[0];
     D.p("Initializing from", initFile);
     Parameters.init(initFile);
     simulate = Parameters.getBoolean("simulate", false);

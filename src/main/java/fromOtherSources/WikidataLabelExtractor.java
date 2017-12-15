@@ -196,7 +196,7 @@ public class WikidataLabelExtractor extends DataExtractor {
   }
 
   public static void main(String[] args) throws Exception {
-    Parameters.init("configuration/yago_tr.ini");
+    Parameters.init("./src/main/resources/yago.ini");
     new WikidataLabelExtractor().extract(new File("/san/suchanek/yago3-debug"), "test");
   }
 }

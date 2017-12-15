@@ -105,7 +105,7 @@ public class MatchYago {
             nativeYagoLoad();
 
             //Load properties file
-            PROPERTIES.load(new FileInputStream("./configuration/config.properties"));
+            PROPERTIES.load(new FileInputStream("./src/main/resources/config.properties"));
 
             // Load the samples
             this.db4SamplesConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Samples.port")+"/"+PROPERTIES.getProperty("db4Samples.name"),
@@ -113,7 +113,7 @@ public class MatchYago {
 
 
             // Set up the Google Translate API connection
-            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./configuration/wikicommons-1c391c623d29.json"));
+            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/wikicommons-1c391c623d29.json"));
             this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
 
             // Initialize hardcoded mappings
@@ -644,7 +644,7 @@ public class MatchYago {
     }
 
     private void nativeYagoLoad() throws IOException{
-        String initFile = "./configuration/yago.ini";
+        String initFile = "./src/main/resources/yago.ini";
         Parameters.init(initFile);
 
         File outputFolder = Parameters.getFile("yagoFolder");
