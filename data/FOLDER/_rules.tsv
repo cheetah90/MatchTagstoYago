@@ -1,0 +1,3 @@
+	<yagoTheme__rules>	<hasGloss>	"This file is part of the ontology YAGO3. It is licensed under a Creative-Commons Attribution License by the YAGO team at the Max Planck Institute for Informatics/Germany. See http://yago-knowledge.org for all details. This file was generated on 2017-10-11 T 19:57:40.0208. These are the implication rules of YAGO INTERNAL"	
+	"$0 rdf:type owl:SymmetricProperty; $1 $0 $2"	<_implies>	"$2 $0 $1"	
+# end of file _rules

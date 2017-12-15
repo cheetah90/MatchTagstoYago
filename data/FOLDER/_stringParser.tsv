@@ -1,0 +1,11 @@
+	<yagoTheme__stringParser>	<hasGloss>	"This file is part of the ontology YAGO3. It is licensed under a Creative-Commons Attribution License by the YAGO team at the Max Planck Institute for Informatics/Germany. See http://yago-knowledge.org for all details. This file was generated on 2017-10-11 T 19:57:40.0208. The replacement patterns for string extraction INTERNAL"	
+	" ?\\([^\\)]*+\\)"	<mapsTo>	""	
+	"\\("	<mapsTo>	""	
+	"\\)"	<mapsTo>	""	
+	"\\[\\[([^\\|\\]]++)\\|([^\\]]++)\\]\\]"	<mapsTo>	"_result_$2__"	
+	"\\[\\[([^\\|\\]]++)(?:\\|([^\\]]++))?\\]\\]"	<mapsTo>	"_result_$1__"	
+	" ?(;|,?\n|'''|''|, ?;|\u0022)+ ?"	<mapsTo>	"_delim_"	
+	"^ ?"	<mapsTo>	"_delim_"	
+	" ?$"	<mapsTo>	"_delim_"	
+	"_delim_([\\p{L} \\p{Nd}]{2,})(?=_delim_)"	<mapsTo>	"_result_$1__"	
+# end of file _stringParser

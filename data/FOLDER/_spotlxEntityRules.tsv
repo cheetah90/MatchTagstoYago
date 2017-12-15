@@ -1,0 +1,10 @@
+	<yagoTheme__spotlxEntityRules>	<hasGloss>	"This file is part of the ontology YAGO3. It is licensed under a Creative-Commons Attribution License by the YAGO team at the Max Planck Institute for Informatics/Germany. See http://yago-knowledge.org for all details. This file was generated on 2017-10-11 T 19:57:40.0208. Implication rules for YAGO SPOTLX representation INTERNAL"	
+	"$0 <happenedIn> $1"	<_implies>	"$0 <placedIn> $1"	
+	"$0 <isLocatedIn> $1 ; $0 -rdf:type <yagoGeoEntity>"	<_implies>	"$0 <placedIn> $1"	
+	"$0 <wasBornOnDate> $1"	<_implies>	"$0 <startsExistingOnDate> $1"	
+	"$0 <wasCreatedOnDate> $1"	<_implies>	"$0 <startsExistingOnDate> $1"	
+	"$0 <startedOnDate> $1"	<_implies>	"$0 <startsExistingOnDate> $1"	
+	"$0 <diedOnDate> $1"	<_implies>	"$0 <endsExistingOnDate> $1"	
+	"$0 <wasDestroyedOnDate> $1"	<_implies>	"$0 <endsExistingOnDate> $1"	
+	"$0 <endedOnDate> $1"	<_implies>	"$0 <endsExistingOnDate> $1"	
+# end of file _spotlxEntityRules

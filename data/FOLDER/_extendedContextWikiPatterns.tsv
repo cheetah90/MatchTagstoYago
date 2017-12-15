@@ -1,0 +1,6 @@
+	<yagoTheme__extendedContextWikiPatterns>	<hasGloss>	"This file is part of the ontology YAGO3. It is licensed under a Creative-Commons Attribution License by the YAGO team at the Max Planck Institute for Informatics/Germany. See http://yago-knowledge.org for all details. This file was generated on 2017-10-11 T 19:57:40.0208. Patterns for extracting Keyphrases INTERNAL"	
+	"(?i)\\[\\[[^\\]\\n:]+?\\|([^\\]\\n]+?)\\]\\]"	<_extendedContextWikiPattern>	"$0 <hasWikipediaAnchorText> @String($1)"	
+	"(?i)\\[\\[([^\\]\\n\\|:]+?)\\]\\]"	<_extendedContextWikiPattern>	"$0 <hasWikipediaAnchorText> @String($1)"	
+	"(?i)\\{\\{[Cc]it[ae][^\\}]+title\\s*=\\s*([^\\}\\|]+)"	<_extendedContextWikiPattern>	"$0 <hasCitationTitle> @String($1)"	
+	"(?i)\\[https?://[^\\s\\]\\n]+\\s+([^\\]\\n]+)\\]"	<_extendedContextWikiPattern>	"$0 <hasWikipediaAnchorText> @String($1)"	
+# end of file _extendedContextWikiPatterns

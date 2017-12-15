@@ -1,0 +1,40 @@
+	<yagoTheme__disambiguationPatterns>	<hasGloss>	"This file is part of the ontology YAGO3. It is licensed under a Creative-Commons Attribution License by the YAGO team at the Max Planck Institute for Informatics/Germany. See http://yago-knowledge.org for all details. This file was generated on 2017-10-11 T 19:57:40.0208. Patterns for the disambiguation pages of Wikipedia INTERNAL"	
+	"{{Disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Airport_disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Battledist}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Callsigndis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Chemistry disambiguation}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Church_disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Disambig-Chinese-char-title}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Disambig-cleanup}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Genus_disambiguation}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Geodis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Hndis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Hndis-cleanup}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Hospitaldis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Hurricane_disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Letter_disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Letter-NumberCombDisambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Mathdab}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{MolFormDisambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{NA_Broadcast_List}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Numberdis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Schooldis}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Species_Latin name abbreviation disambiguation}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Taxonomy_disambiguation}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Species_Latin_name_disambiguation}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{WP_disambig}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{disambig|geo}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{surname}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{given name}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{hndis"	rdf:type	<_yagoDisambiguationTemplate>	
+	"\\*.{1,5}\\[\\[([^\\]\\n:]+?)\\|([^\\]\\n]+?)\\]\\]"	<_disambiguationPattern>	"@Entity($1) rdfs:label @String($0)"	
+	"\\*.{1,5}\\[\\[([^\\]\\n:\\|]+?)\\]\\]"	<_disambiguationPattern>	"@Entity($1) rdfs:label @String($0)"	
+	"{{توضيح}}"	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{Begriffsklärung}}"@deu	rdf:type	<_yagoDisambiguationTemplate>	
+	"[[Kategorie:Familienname]]"@deu	rdf:type	<_yagoDisambiguationTemplate>	
+	"[[Kategorie:Männlicher Vorname]]"@deu	rdf:type	<_yagoDisambiguationTemplate>	
+	"[[Kategorie:Weiblicher Vorname]]"@deu	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{disambig|"@zho	rdf:type	<_yagoDisambiguationTemplate>	
+	"{{消歧义|"@zho	rdf:type	<_yagoDisambiguationTemplate>	
+# end of file _disambiguationPatterns
