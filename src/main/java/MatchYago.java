@@ -412,6 +412,8 @@ public class MatchYago {
                 } else {
                     yagoOriginal2Type.get(subject).add(object);
                 }
+            } else {
+                logger.info("Invalid yago record: subject=" + subject + " / object=" + object);
             }
 
         }
