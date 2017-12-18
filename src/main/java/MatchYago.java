@@ -446,7 +446,7 @@ public class MatchYago {
             }
 
 
-            logger.info("Finish loading records from dataase");
+            logger.info("Finish loading records from database");
 
         } catch (SQLException exception) {
             exception.printStackTrace();
