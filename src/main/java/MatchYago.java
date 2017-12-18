@@ -422,10 +422,11 @@ public class MatchYago {
                     PROPERTIES.getProperty("db4Yago.username"), PROPERTIES.getProperty("db4Yago.password"));
 
             PreparedStatement stmt = null;
+            String yagotypesTable = PROPERTIES.getProperty("debugMode").equals("true") ? "subset_yagotypes" : "yagotypes";
 
             logger.info("Start loading records from database");
             // load yagotypes
-            String query_yagotype = "SELECT * FROM subset_yagotypes";
+            String query_yagotype = "SELECT * FROM "+ yagotypesTable;
             stmt = yagoConnection.prepareStatement(query_yagotype);
             ResultSet rs = stmt.executeQuery();
             //Load the resultset
@@ -434,13 +435,16 @@ public class MatchYago {
             stmt.close();
 
 
-            // Load the yagotaxonomy
-            String query_yagotaxonomy = "SELECT * FROM YAGOTAXONOMY";
-            stmt = yagoConnection.prepareStatement(query_yagotaxonomy);
-            rs = stmt.executeQuery();
-            loadResultSet(rs);
-            rs.close();
-            stmt.close();
+            if (!PROPERTIES.getProperty("debugMode").equals("true")) {
+                // Load the yagotaxonomy
+                String query_yagotaxonomy = "SELECT * FROM YAGOTAXONOMY";
+                stmt = yagoConnection.prepareStatement(query_yagotaxonomy);
+                rs = stmt.executeQuery();
+                loadResultSet(rs);
+                rs.close();
+                stmt.close();
+            }
+
 
             logger.info("Finish loading records from dataase");
 
