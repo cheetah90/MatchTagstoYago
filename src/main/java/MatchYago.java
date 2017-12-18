@@ -383,14 +383,15 @@ public class MatchYago {
     }
 
     boolean hadValidObject(String typeInfo) {
-        return (!typeInfo.contains("wikicat_Abbreviations") && !typeInfo.contains("wordnet_first_name"));
+        return (typeInfo != null &&
+                !typeInfo.contains("wikicat_Abbreviations") && !typeInfo.contains("wordnet_first_name"));
     }
 
     private void loadResultSet(ResultSet rs) throws SQLException {
         while (rs.next()) {
             String subject = rs.getString("subject");
             String object = rs.getString("object");
-            if (hadValidObject(object) ){
+            if (hadValidObject(object) && subject != null){
 
                 // first add to yagoLowercase2Original
                 if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
