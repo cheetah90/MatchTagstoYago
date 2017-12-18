@@ -5,7 +5,6 @@ target/
 
 # ignore some yago native folders
 data/uwn4yago
-data/wordnet
 data/wordnetDomains
 
 *.log
