@@ -374,7 +374,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         boolean needToMatchTitle = true;
 
 
-        logger.info("Start processing " + counter + " | title: " + original_title);
+        //logger.info("Start processing " + counter + " | title: " + original_title);
 
         MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
@@ -404,7 +404,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                             // print to std out
-                            logger.info("\t" + yago_match);
+                            //logger.info("\t" + yago_match);
 
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
@@ -415,6 +415,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 ex.printStackTrace();
                 logger.error("Error when parsing file: " + commonsMetadata.getTitle());
                 logger.error("Error when parsing category: " + category);
+                logger.error(ex.getStackTrace());
             }
 
         }
