@@ -45,7 +45,7 @@ public class NLPUtils {
                 firstPhrase = firstPhrase.substring(0, firstPhrase.length()-1);
             } else {
                 // If it has split
-                firstPhrase = firstPhrase.split(":")[1];
+                firstPhrase = firstPhrase.split(":")[1].trim();
             }
         }
 

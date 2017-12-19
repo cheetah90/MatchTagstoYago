@@ -63,7 +63,8 @@ public class MediaWikiCommonsAPI {
 
     public MediaWikiCommonsAPI(){ }
 
-    public CommonsMetadata createMeatadata(String fileName){
+    // Making this method thread-safe
+    public synchronized CommonsMetadata createMeatadata(String fileName){
         CommonsMetadata metadata = new CommonsMetadata();
         metadata.setTitle(fileName);
         String requestURL = null;
