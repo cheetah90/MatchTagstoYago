@@ -39,8 +39,24 @@ public class ProcessSingleImageRunnable implements Runnable {
         return counter;
     }
 
-    public synchronized static void increaseCounter() {
+    private synchronized static void incrementCounter() {
         counter++;
+    }
+
+    private synchronized static void incrementFlickrCounter() {
+        FlickrCounter++;
+    }
+
+    private synchronized static void incrementPanoramioCounter() {
+        PanoramioCounter++;
+    }
+
+    public static int getFlickrCounter(){
+        return FlickrCounter;
+    }
+
+    public static int getPanoramioCounter(){
+        return PanoramioCounter;
     }
 
     /** Holds the preferred meanings */
@@ -64,6 +80,10 @@ public class ProcessSingleImageRunnable implements Runnable {
     private static final int MAXTOKENSINAPHRASE = 11;
 
     private static final int MINCHARSINTITLE= 5;
+
+    private static int FlickrCounter = 0;
+
+    private static int PanoramioCounter = 0;
 
     /**
      * Finish static methods and variables
@@ -101,10 +121,6 @@ public class ProcessSingleImageRunnable implements Runnable {
     private boolean isFlickr = false;
 
     private boolean isPanoramio = false;
-
-    private static long FlickrCounter = 0;
-
-    private static long PanoramioCounter = 0;
 
     private MatchCategory matchCategory;
 
@@ -364,7 +380,7 @@ public class ProcessSingleImageRunnable implements Runnable {
     public void run() {
         // Skip non photo file
         if (isNotPhoto(original_title)) {
-            ProcessSingleImageRunnable.increaseCounter();
+            ProcessSingleImageRunnable.incrementCounter();
             return;
         }
 
@@ -373,7 +389,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         boolean needToMatchTitle = true;
 
 
-        logger.info("Start processing " + counter + " | title: " + original_title);
+        logger.info("Start processing " + (counter+1) + " | title: " + original_title);
 
         MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
@@ -501,11 +517,11 @@ public class ProcessSingleImageRunnable implements Runnable {
 
 
         // Increment Flickr and Panoramio counter
-        if (isFlickr) {FlickrCounter++;}
-        if (isPanoramio) {PanoramioCounter++;}
+        if (isFlickr) {incrementFlickrCounter();}
+        if (isPanoramio) {incrementPanoramioCounter();}
 
         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
-        ProcessSingleImageRunnable.increaseCounter();
+        ProcessSingleImageRunnable.incrementCounter();
     }
 }

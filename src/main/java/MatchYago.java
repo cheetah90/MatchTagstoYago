@@ -220,6 +220,8 @@ public class MatchYago {
             }
         }
         System.out.println("Processing " + ProcessSingleImageRunnable.getCounter() + "/"+numofImages);
+        logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
+        logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
 
     }
 
