@@ -6,11 +6,11 @@ import utils.Theme;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.google.cloud.translate.*;
 
 public class MatchYago {
 
@@ -23,10 +23,6 @@ public class MatchYago {
     private static final Logger logger = LogManager.getLogger(MatchYago.class);
 
     private Connection db4SamplesConnection;
-
-    private Connection yagoConnection;
-
-    private Translate googleTranslate;
 
     private final static HashMap<String, HashSet<String>> yagoLowercase2Original = new HashMap<>();
 
@@ -76,7 +72,7 @@ public class MatchYago {
         } else {
             logger.info("Choose to load Yago data from a database!");
             try {
-                yagoConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Yago.port")+"/"+PROPERTIES.getProperty("db4Yago.name"),
+                Connection yagoConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Yago.port")+"/"+PROPERTIES.getProperty("db4Yago.name"),
                         PROPERTIES.getProperty("db4Yago.username"), PROPERTIES.getProperty("db4Yago.password"));
 
                 ProcessSingleImageRunnable.setYagoConnection(yagoConnection);
@@ -158,7 +154,7 @@ public class MatchYago {
                     PROPERTIES.getProperty("db4Yago.username"), PROPERTIES.getProperty("db4Yago.password"));
 
             PreparedStatement stmt = null;
-            String yagotypesTable = PROPERTIES.getProperty("debugMode").equals("true") ? "subset_yagotypes" : "yagotypes";
+            String yagotypesTable = PROPERTIES.getProperty("debugLocally").equals("true") ? "subset_yagotypes" : "yagotypes";
 
             // load yagotypes
             String query_yagotype = "SELECT * FROM "+ yagotypesTable;
@@ -170,7 +166,7 @@ public class MatchYago {
             stmt.close();
 
 
-            if (!PROPERTIES.getProperty("debugMode").equals("true")) {
+            if (!PROPERTIES.getProperty("debugLocally").equals("true")) {
                 // Load the yagotaxonomy
                 String query_yagotaxonomy = "SELECT * FROM YAGOTAXONOMY";
                 stmt = yagoConnection.prepareStatement(query_yagotaxonomy);
@@ -205,10 +201,14 @@ public class MatchYago {
             return;
         }
 
+        // Create ThreadPool
+        ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(PROPERTIES.getProperty("maxThreadPool")));
+        // Create task for each image
         for (String original_title: pageTitles){
-            (new Thread(new ProcessSingleImageRunnable(original_title))).start();
+            pool.execute(new ProcessSingleImageRunnable(original_title));
         }
 
+        // Looping and profile the progress
         while (ProcessSingleImageRunnable.getCounter() < numofImages) {
             System.out.println("Processing " + ProcessSingleImageRunnable.getCounter() + "/"+numofImages);
             try {
