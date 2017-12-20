@@ -1,20 +1,15 @@
-import basics.FactComponent;
 import javatools.administrative.Parameters;
 import fromOtherSources.PatternHardExtractor;
 import fromOtherSources.WordnetExtractor;
 import utils.Theme;
-import utils.NLPUtils;
 
 import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.cloud.translate.Translate.TranslateOption;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.translate.*;
 
 public class MatchYago {
@@ -118,7 +113,7 @@ public class MatchYago {
     }
 
 
-    boolean hadValidObject(String typeInfo) {
+    private boolean isValidObject(String typeInfo) {
         return (typeInfo != null &&
                 !typeInfo.contains("wikicat_Abbreviations") && !typeInfo.contains("wordnet_first_name"));
     }
@@ -127,8 +122,8 @@ public class MatchYago {
         while (rs.next()) {
             String subject = rs.getString("subject");
             String object = rs.getString("object");
-            if (hadValidObject(object) && subject != null){
-
+            String predicate = rs.getString("predicate");
+            if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
                 // first add to yagoLowercase2Original
                 if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
                     // the lowercase does not exist
@@ -148,9 +143,10 @@ public class MatchYago {
                 } else {
                     yagoOriginal2Type.get(subject).add(object);
                 }
-            } else {
-                logger.info("Invalid yago record: subject=" + subject + " / object=" + object);
             }
+//            else {
+//                logger.info("Invalid yago record: subject=" + subject + " / object=" + object);
+//            }
 
         }
     }

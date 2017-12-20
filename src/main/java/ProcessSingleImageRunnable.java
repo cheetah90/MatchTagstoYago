@@ -4,7 +4,6 @@ import com.google.cloud.translate.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.xerces.impl.xpath.regex.Match;
 import utils.NLPUtils;
 
 import java.io.*;
