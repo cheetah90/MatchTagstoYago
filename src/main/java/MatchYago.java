@@ -47,7 +47,8 @@ public class MatchYago {
             nativeYagoLoad();
 
             //Load properties file
-            PROPERTIES.load(new FileInputStream("./src/main/resources/config.properties"));
+
+            PROPERTIES.load(new InputStreamReader(new FileInputStream("./src/main/resources/config.properties"), "UTF8"));
 
             // Load the samples
             this.db4SamplesConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Samples.port")+"/"+PROPERTIES.getProperty("db4Samples.name"),
