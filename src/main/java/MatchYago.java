@@ -191,23 +191,21 @@ public class MatchYago {
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
 
-        int numofImages = 0;
-
         List<String> pageTitles = null;
+        int numofImages;
 
         try {
             pageTitles = queryAllPageTitles();
+            numofImages = pageTitles.size();
+            logger.info("Total number of images to process: " + numofImages);
         } catch (SQLException exception) {
             exception.printStackTrace();
-        }
-
-        if (pageTitles == null) {
+            logger.error("Failed to load the name of the images to be processed.");
             return;
         }
 
         for (String original_title: pageTitles){
             (new Thread(new ProcessSingleImageRunnable(original_title))).start();
-            numofImages++;
         }
 
         while (ProcessSingleImageRunnable.getCounter() < numofImages) {
