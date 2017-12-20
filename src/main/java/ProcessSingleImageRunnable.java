@@ -374,7 +374,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         boolean needToMatchTitle = true;
 
 
-        //logger.info("Start processing " + counter + " | title: " + original_title);
+        logger.info("Start processing " + counter + " | title: " + original_title);
 
         MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
