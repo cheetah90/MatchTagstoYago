@@ -448,7 +448,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                         // print to std out
-                        logger.info("\t" + yago_match);
+                        //logger.info("\t" + yago_match);
 
                         // add the categories to yago_match
                         allYagoEntities.add(yago_match);
@@ -486,7 +486,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                             // print to std out
-                            logger.info("\t" + yago_match);
+                            //logger.info("\t" + yago_match);
 
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
