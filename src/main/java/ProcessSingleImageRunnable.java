@@ -1,6 +1,16 @@
 import basics.FactComponent;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.translate.*;
+import com.google.common.base.Optional;
+import com.optimaize.langdetect.LanguageDetector;
+import com.optimaize.langdetect.LanguageDetectorBuilder;
+import com.optimaize.langdetect.i18n.LdLocale;
+import com.optimaize.langdetect.ngram.NgramExtractors;
+import com.optimaize.langdetect.profiles.LanguageProfile;
+import com.optimaize.langdetect.profiles.LanguageProfileReader;
+import com.optimaize.langdetect.text.CommonTextObjectFactories;
+import com.optimaize.langdetect.text.TextObject;
+import com.optimaize.langdetect.text.TextObjectFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,12 +45,16 @@ public class ProcessSingleImageRunnable implements Runnable {
         ProcessSingleImageRunnable.yagoOriginal2Type = yagoOriginal2Type;
     }
 
-    public static int getCounter() {
-        return counter;
+    public static int getCompletedCounter() {
+        return completedCounter;
     }
 
-    private synchronized static void incrementCounter() {
-        counter++;
+    private synchronized static void incrementCompletedCounter() {
+        completedCounter++;
+    }
+
+    private synchronized static void incrementStartedCounter() {
+        startedCounter++;
     }
 
     private synchronized static void incrementFlickrCounter() {
@@ -75,7 +89,9 @@ public class ProcessSingleImageRunnable implements Runnable {
 
     private static final MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
-    private static int counter = 0;
+    private static int completedCounter = 0;
+
+    private static int startedCounter = 0;
 
     private static final int MAXTOKENSINAPHRASE = 11;
 
@@ -84,6 +100,12 @@ public class ProcessSingleImageRunnable implements Runnable {
     private static int FlickrCounter = 0;
 
     private static int PanoramioCounter = 0;
+
+    private static LanguageDetector languageDetector;
+
+    private static TextObjectFactory textObjectFactory;
+
+    private static final Object translationLock = new Object();
 
     /**
      * Finish static methods and variables
@@ -138,7 +160,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "files_with_no", "template_unknown", "_temp_", "department_of_", "supported_by_",
             "images_with_", "files_by", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_locations_", "photos,_created_by_", "project_",
             "djvu_files", "images_of_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "image_description", "wikiafrica_", "_view_", "_views_",
-            "elef_milim", "_work_"
+            "elef_milim", "_work_", "_scan_"
     };
 
     private static final String[] BLACKLIST_EQUAL_CATEGORIES={"fal", "attribution", "retouched_pictures"
@@ -152,6 +174,20 @@ public class ProcessSingleImageRunnable implements Runnable {
             // Set up the Google Translate API connection
             GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/wikicommons-1c391c623d29.json"));
             this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+
+            // Use local language detector
+            if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+                //load all languages:
+                List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
+
+                //build language detector:
+                languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
+                        .withProfiles(languageProfiles)
+                        .build();
+
+                //create a text object factory
+                textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+            }
         } catch (Exception exception) {
             exception.printStackTrace();
             logger.error("Google credential file does not exist!");
@@ -162,7 +198,6 @@ public class ProcessSingleImageRunnable implements Runnable {
         } else {
             this.matchCategory = new MatchCategory(preferredMeanings, nonConceptualCategories, yagoConnection);
         }
-
 
     }
 
@@ -310,8 +345,20 @@ public class ProcessSingleImageRunnable implements Runnable {
         }
         String englishText = original_text;
 
-        Detection detection = googleTranslate.detect(strip_original);
-        String lang = detection.getLanguage();
+        String lang;
+        // Use local language detector
+        if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+            // Synchronized this block since it uses static methods and variables
+            synchronized (translationLock) {
+                TextObject textObject = textObjectFactory.forText(strip_original);
+                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+            }
+        } else {
+            Detection detection = googleTranslate.detect(strip_original);
+            lang = detection.getLanguage();
+        }
+
 
         try {
             if (! lang.equals("en")) {
@@ -380,7 +427,7 @@ public class ProcessSingleImageRunnable implements Runnable {
     public void run() {
         // Skip non photo file
         if (isNotPhoto(original_title)) {
-            ProcessSingleImageRunnable.incrementCounter();
+            ProcessSingleImageRunnable.incrementCompletedCounter();
             return;
         }
 
@@ -389,7 +436,8 @@ public class ProcessSingleImageRunnable implements Runnable {
         boolean needToMatchTitle = true;
 
 
-        logger.info("Start processing " + (counter+1) + " | title: " + original_title);
+        incrementStartedCounter();
+        logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
         MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
@@ -419,7 +467,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                             // print to std out
-                            //logger.info("\t" + yago_match);
+                            logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
 
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
@@ -427,10 +475,9 @@ public class ProcessSingleImageRunnable implements Runnable {
                     }
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
                 logger.error("Error when parsing file: " + commonsMetadata.getTitle());
                 logger.error("Error when parsing category: " + category);
-                logger.error(ex.getStackTrace());
+                logger.error(ex);
             }
 
         }
@@ -463,7 +510,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                         // print to std out
-                        //logger.info("\t" + yago_match);
+                        logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
 
                         // add the categories to yago_match
                         allYagoEntities.add(yago_match);
@@ -471,9 +518,9 @@ public class ProcessSingleImageRunnable implements Runnable {
                 }
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
             logger.error("Error when parsing file: " + commonsMetadata.getTitle());
             logger.error("Error when parsing description: " + commonsMetadata.getDescription());
+            logger.error(exception);
         }
 
 
@@ -501,7 +548,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                             // print to std out
-                            //logger.info("\t" + yago_match);
+                            logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
 
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
@@ -510,9 +557,9 @@ public class ProcessSingleImageRunnable implements Runnable {
                 }
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
             logger.error("Error when parsing file: " + commonsMetadata.getTitle());
             logger.error("Error when parsing title: " + commonsMetadata.getTitle());
+            logger.error(exception);
         }
 
 
@@ -522,6 +569,6 @@ public class ProcessSingleImageRunnable implements Runnable {
 
         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
-        ProcessSingleImageRunnable.incrementCounter();
+        ProcessSingleImageRunnable.incrementCompletedCounter();
     }
 }

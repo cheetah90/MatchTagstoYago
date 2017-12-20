@@ -208,9 +208,12 @@ public class MatchYago {
             pool.execute(new ProcessSingleImageRunnable(original_title));
         }
 
+        //Shutdown
+        pool.shutdown();
+
         // Looping and profile the progress
-        while (ProcessSingleImageRunnable.getCounter() < numofImages) {
-            System.out.println("Processing " + ProcessSingleImageRunnable.getCounter() + "/"+numofImages);
+        while (ProcessSingleImageRunnable.getCompletedCounter() < numofImages) {
+            System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
             try {
                 synchronized (this) {
                     this.wait(10000);
@@ -219,10 +222,9 @@ public class MatchYago {
                 exception.printStackTrace();
             }
         }
-        System.out.println("Processing " + ProcessSingleImageRunnable.getCounter() + "/"+numofImages);
+        System.out.println("Processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
-
     }
 
     /** Read file backwards. Does not use buffers, therefore slow */
