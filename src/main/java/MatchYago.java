@@ -295,7 +295,8 @@ public class MatchYago {
                 exception.printStackTrace();
             }
         }
-        System.out.println("Processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
+
+        System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
     }

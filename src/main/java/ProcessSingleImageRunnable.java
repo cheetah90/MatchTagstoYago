@@ -87,8 +87,6 @@ public class ProcessSingleImageRunnable implements Runnable {
 
     private static final Logger logger = LogManager.getLogger(ProcessSingleImageRunnable.class);
 
-    private static final MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
-
     private static int completedCounter = 0;
 
     private static int startedCounter = 0;
@@ -135,6 +133,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         }
 
     }
+    private MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
     private Translate googleTranslate;
 
@@ -160,7 +159,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "files_with_no", "template_unknown", "_temp_", "department_of_", "supported_by_",
             "images_with_", "files_by", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_locations_", "photos,_created_by_", "project_",
             "djvu_files", "images_of_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "image_description", "wikiafrica_", "_view_", "_views_",
-            "elef_milim", "_work_", "_scan_"
+            "elef_milim", "_work_", "_scan_", "extracted_images"
     };
 
     private static final String[] BLACKLIST_EQUAL_CATEGORIES={"fal", "attribution", "retouched_pictures"
@@ -189,8 +188,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
-            logger.error("Google credential file does not exist!");
+            logger.error(exception.getStackTrace());
         }
 
         if (MatchYago.getPROPERTIES().getProperty("LoadYago2Memory").equals("true")) {
@@ -337,7 +335,8 @@ public class ProcessSingleImageRunnable implements Runnable {
     }
 
     private ProcessSingleImageRunnable.TranslationResults translateToEnglish(String original_text){
-        String strip_original = FactComponent.stripCat(original_text);
+        String strip_original = FactComponent.stripCat(original_text).trim();
+        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
         // Just use the first paragraph in case the text is a combination of English and foreign language
         // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
         if (strip_original.contains("\n")) {
@@ -354,6 +353,8 @@ public class ProcessSingleImageRunnable implements Runnable {
                 Optional<LdLocale> langOptional = languageDetector.detect(textObject);
                 lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
             }
+            // translate oc to fr
+            lang = lang.equals("oc")?"fr":lang;
         } else {
             Detection detection = googleTranslate.detect(strip_original);
             lang = detection.getLanguage();
@@ -370,7 +371,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 englishText = translation.getTranslatedText();
             }
         } catch (TranslateException exception) {
-            logger.error("Something wrong with the Google Translate API");
+            logger.error(exception.getStackTrace());
             englishText = "";
         }
 
@@ -439,7 +440,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         incrementStartedCounter();
         logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
-        MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
+        MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = this.mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
         preprocessCommonsMetadata(commonsMetadata);
 
@@ -474,10 +475,10 @@ public class ProcessSingleImageRunnable implements Runnable {
                         }
                     }
                 }
-            } catch (Exception ex) {
-                logger.error("Error when parsing file: " + commonsMetadata.getTitle());
+            } catch (Exception exception) {
+                logger.error("Error when parsing file: " + original_title);
                 logger.error("Error when parsing category: " + category);
-                logger.error(ex);
+                logger.error(exception.getStackTrace());
             }
 
         }
@@ -518,9 +519,9 @@ public class ProcessSingleImageRunnable implements Runnable {
                 }
             }
         } catch (Exception exception) {
-            logger.error("Error when parsing file: " + commonsMetadata.getTitle());
+            logger.error("Error when parsing file: " + original_title);
             logger.error("Error when parsing description: " + commonsMetadata.getDescription());
-            logger.error(exception);
+            logger.error(exception.getStackTrace());
         }
 
 
@@ -557,9 +558,9 @@ public class ProcessSingleImageRunnable implements Runnable {
                 }
             }
         } catch (Exception exception) {
-            logger.error("Error when parsing file: " + commonsMetadata.getTitle());
+            logger.error("Error when parsing file: " + original_title);
             logger.error("Error when parsing title: " + commonsMetadata.getTitle());
-            logger.error(exception);
+            logger.error(exception.getStackTrace());
         }
 
 
