@@ -115,7 +115,7 @@ public class MatchYago {
                 !typeInfo.contains("wikicat_Abbreviations") && !typeInfo.contains("wordnet_first_name"));
     }
 
-    private void loadResultSet(ResultSet rs) throws SQLException {
+    private void loadForeignWikiResultSet(ResultSet rs) throws SQLException {
         while (rs.next()) {
             String subject = rs.getString("subject");
             String object = rs.getString("object");
@@ -124,64 +124,81 @@ public class MatchYago {
             if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
                 // If this is a multilingual word
                 if (subject.length() > 5 && subject.substring(1,4).matches("[a-zA-Z]{2}/")) {
-                    String sub_subject = "<"+subject.substring(4);
+                    String strip_subject = "<"+subject.substring(4);
 
                     // first add to yagoLowercase2Original
-                    if (yagoLowercase2Original.get(sub_subject.toLowerCase()) == null) {
+                    // if this foreign entity does not exist in en.wiki, add it without the lang code
+                    if (yagoLowercase2Original.get(strip_subject.toLowerCase()) == null) {
                         // the lowercase does not exist
                         HashSet<String> hashSet = new HashSet<>();
-                        hashSet.add(subject);
-                        yagoLowercase2Original.put(sub_subject.toLowerCase(), hashSet);
-
+                        hashSet.add(strip_subject);
+                        yagoLowercase2Original.put(strip_subject.toLowerCase(), hashSet);
                     } else {
-                        for (String existing : yagoLowercase2Original.get(sub_subject.toLowerCase())) {
-                            if (!existing.equals(subject)) {
-                                logger.info(subject + "has word in en.wiki!");
-                            }
+                        // if this foreign entity exist in en.wiki, add it with the lang code
+                        if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
+                            // the lowercase does not exist
+                            HashSet<String> hashSet = new HashSet<>();
+                            hashSet.add(subject);
+                            yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
+                        } else {
+                            yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
                         }
-                        yagoLowercase2Original.get(sub_subject.toLowerCase()).add(subject);
                     }
 
                     // Then add to yagoOriginal2Type
-                    if (yagoOriginal2Type.get(sub_subject) == null) {
+                    if (yagoOriginal2Type.get(strip_subject) == null) {
                         // the lowercase does not exist
                         HashSet<String> hashSet = new HashSet<>();
                         hashSet.add(object);
-                        yagoOriginal2Type.put(sub_subject, hashSet);
+                        yagoOriginal2Type.put(strip_subject, hashSet);
                     } else {
-                        yagoOriginal2Type.get(sub_subject).add(object);
-                    }
-                } else {
-                    // first add to yagoLowercase2Original
-                    if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
-                        // the lowercase does not exist
-                        HashSet<String> hashSet = new HashSet<>();
-                        hashSet.add(subject);
-                        yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
-                    } else {
-                        for (String existing : yagoLowercase2Original.get(subject.toLowerCase())) {
-                            if (!existing.toLowerCase().equals(subject.toLowerCase())) {
-                                logger.info(existing + "has word in en.wiki!");
-                            }
+                        if (yagoOriginal2Type.get(subject) == null) {
+                            // the lowercase does not exist
+                            HashSet<String> hashSet = new HashSet<>();
+                            hashSet.add(object);
+                            yagoOriginal2Type.put(subject, hashSet);
+                        } else {
+                            yagoOriginal2Type.get(subject).add(object);
                         }
-
-                        yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
-                    }
-
-                    // Then add to yagoOriginal2Type
-                    if (yagoOriginal2Type.get(subject) == null) {
-                        // the lowercase does not exist
-                        HashSet<String> hashSet = new HashSet<>();
-                        hashSet.add(object);
-                        yagoOriginal2Type.put(subject, hashSet);
-                    } else {
-                        yagoOriginal2Type.get(subject).add(object);
                     }
                 }
+            } else {
+                logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
             }
-//            else {
-//                logger.info("Invalid yago record: subject=" + subject + " / object=" + object);
-//            }
+        }
+    }
+
+    private void loadEnWikiResultSet(ResultSet rs) throws SQLException {
+        while (rs.next()) {
+            String subject = rs.getString("subject");
+            String object = rs.getString("object");
+            String predicate = rs.getString("predicate");
+
+            if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
+                // first add to yagoLowercase2Original
+                if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
+                    // the lowercase does not exist
+                    HashSet<String> hashSet = new HashSet<>();
+                    hashSet.add(subject);
+                    yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
+                } else {
+                    yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
+                }
+
+                // Then add to yagoOriginal2Type
+                if (yagoOriginal2Type.get(subject) == null) {
+                    // the lowercase does not exist
+                    HashSet<String> hashSet = new HashSet<>();
+                    hashSet.add(object);
+                    yagoOriginal2Type.put(subject, hashSet);
+                } else {
+                    yagoOriginal2Type.get(subject).add(object);
+                }
+
+            }
+            else {
+                logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
+            }
 
         }
     }
@@ -194,22 +211,40 @@ public class MatchYago {
             PreparedStatement stmt = null;
             String yagotypesTable = PROPERTIES.getProperty("debugLocally").equals("true") ? "subset_yagotypes" : "yagotypes";
 
-            // load yagotypes
-            String query_yagotype = "SELECT * FROM "+ yagotypesTable;
-            stmt = yagoConnection.prepareStatement(query_yagotype);
-            ResultSet rs = stmt.executeQuery();
-            //Load the resultset
-            loadResultSet(rs);
-            rs.close();
-            stmt.close();
+            // local debug mode: only load subset of types
+            if (PROPERTIES.getProperty("debugLocally").equals("true")) {
+                String query_yagotype = "SELECT * FROM subset_yagotypes";
+                stmt = yagoConnection.prepareStatement(query_yagotype);
+                ResultSet rs = stmt.executeQuery();
+                //Load the resultset
+                loadEnWikiResultSet(rs);
+                rs.close();
+                stmt.close();
+            } else {
+                // load all dataset
+                // 1) load the enwiki yagotypes
+                String query_yagotype = "SELECT * FROM yagotypes_enwiki";
+                stmt = yagoConnection.prepareStatement(query_yagotype);
+                ResultSet rs = stmt.executeQuery();
+                //Load the resultset
+                loadEnWikiResultSet(rs);
+                rs.close();
+                stmt.close();
 
+                // 2) load the foreign yagotypes
+                query_yagotype = "SELECT * FROM yagotypes_foreignwiki";
+                stmt = yagoConnection.prepareStatement(query_yagotype);
+                rs = stmt.executeQuery();
+                //Load the resultset
+                loadForeignWikiResultSet(rs);
+                rs.close();
+                stmt.close();
 
-            if (!PROPERTIES.getProperty("debugLocally").equals("true")) {
-                // Load the yagotaxonomy
+                // 3 Load the yagotaxonomy
                 String query_yagotaxonomy = "SELECT * FROM YAGOTAXONOMY";
                 stmt = yagoConnection.prepareStatement(query_yagotaxonomy);
                 rs = stmt.executeQuery();
-                loadResultSet(rs);
+                loadEnWikiResultSet(rs);
                 rs.close();
                 stmt.close();
             }
