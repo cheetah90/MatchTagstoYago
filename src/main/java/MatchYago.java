@@ -128,9 +128,18 @@ public class MatchYago {
 
                     // first add to yagoLowercase2Original
                     if (yagoLowercase2Original.get(sub_subject.toLowerCase()) == null) {
+                        // the lowercase does not exist
+                        HashSet<String> hashSet = new HashSet<>();
+                        hashSet.add(subject);
+                        yagoLowercase2Original.put(sub_subject.toLowerCase(), hashSet);
 
                     } else {
-                        logger.info(subject+" is in en.wiki!");
+                        for (String existing : yagoLowercase2Original.get(sub_subject.toLowerCase())) {
+                            if (!existing.equals(subject)) {
+                                logger.info(subject + "has word in en.wiki!");
+                            }
+                        }
+                        yagoLowercase2Original.get(sub_subject.toLowerCase()).add(subject);
                     }
 
                     // Then add to yagoOriginal2Type
@@ -150,6 +159,12 @@ public class MatchYago {
                         hashSet.add(subject);
                         yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
                     } else {
+                        for (String existing : yagoLowercase2Original.get(subject.toLowerCase())) {
+                            if (!existing.toLowerCase().equals(subject.toLowerCase())) {
+                                logger.info(existing + "has word in en.wiki!");
+                            }
+                        }
+
                         yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
                     }
 
