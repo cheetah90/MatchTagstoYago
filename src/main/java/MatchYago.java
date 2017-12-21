@@ -120,6 +120,7 @@ public class MatchYago {
             String subject = rs.getString("subject");
             String object = rs.getString("object");
             String predicate = rs.getString("predicate");
+
             if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
                 // If this is a multilingual word
                 if (subject.length() > 5 && subject.substring(1,4).matches("[a-zA-Z]{2}/")) {
@@ -127,10 +128,7 @@ public class MatchYago {
 
                     // first add to yagoLowercase2Original
                     if (yagoLowercase2Original.get(sub_subject.toLowerCase()) == null) {
-                        // the lowercase does not exist
-                        HashSet<String> hashSet = new HashSet<>();
-                        hashSet.add(sub_subject);
-                        yagoLowercase2Original.put(sub_subject.toLowerCase(), hashSet);
+
                     } else {
                         logger.info(subject+" is in en.wiki!");
                     }
