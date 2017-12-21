@@ -121,24 +121,49 @@ public class MatchYago {
             String object = rs.getString("object");
             String predicate = rs.getString("predicate");
             if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
-                // first add to yagoLowercase2Original
-                if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
-                    // the lowercase does not exist
-                    HashSet<String> hashSet = new HashSet<>();
-                    hashSet.add(subject);
-                    yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
-                } else {
-                    yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
-                }
+                // If this is multilingual word
+                if (subject.substring(1,4).matches("[a-zA-Z]{2}/")) {
+                    String sub_subject = "<"+subject.substring(4);
 
-                // Then add to yagoOriginal2Type
-                if (yagoOriginal2Type.get(subject) == null) {
-                    // the lowercase does not exist
-                    HashSet<String> hashSet = new HashSet<>();
-                    hashSet.add(object);
-                    yagoOriginal2Type.put(subject, hashSet);
+                    // first add to yagoLowercase2Original
+                    if (yagoLowercase2Original.get(sub_subject.toLowerCase()) == null) {
+                        // the lowercase does not exist
+                        HashSet<String> hashSet = new HashSet<>();
+                        hashSet.add(sub_subject);
+                        yagoLowercase2Original.put(sub_subject.toLowerCase(), hashSet);
+                    } else {
+                        logger.info(subject+" is in en.wiki!");
+                    }
+
+                    // Then add to yagoOriginal2Type
+                    if (yagoOriginal2Type.get(sub_subject) == null) {
+                        // the lowercase does not exist
+                        HashSet<String> hashSet = new HashSet<>();
+                        hashSet.add(object);
+                        yagoOriginal2Type.put(sub_subject, hashSet);
+                    } else {
+                        yagoOriginal2Type.get(sub_subject).add(object);
+                    }
                 } else {
-                    yagoOriginal2Type.get(subject).add(object);
+                    // first add to yagoLowercase2Original
+                    if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
+                        // the lowercase does not exist
+                        HashSet<String> hashSet = new HashSet<>();
+                        hashSet.add(subject);
+                        yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
+                    } else {
+                        yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
+                    }
+
+                    // Then add to yagoOriginal2Type
+                    if (yagoOriginal2Type.get(subject) == null) {
+                        // the lowercase does not exist
+                        HashSet<String> hashSet = new HashSet<>();
+                        hashSet.add(object);
+                        yagoOriginal2Type.put(subject, hashSet);
+                    } else {
+                        yagoOriginal2Type.get(subject).add(object);
+                    }
                 }
             }
 //            else {
