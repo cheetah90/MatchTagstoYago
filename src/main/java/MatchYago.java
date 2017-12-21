@@ -121,8 +121,8 @@ public class MatchYago {
             String object = rs.getString("object");
             String predicate = rs.getString("predicate");
             if (isValidObject(object) && subject != null && !(predicate.equals("rdf:redirect") && subject.toLowerCase().equals(object.toLowerCase()))){
-                // If this is multilingual word
-                if (subject.substring(1,4).matches("[a-zA-Z]{2}/")) {
+                // If this is a multilingual word
+                if (subject.length() > 5 && subject.substring(1,4).matches("[a-zA-Z]{2}/")) {
                     String sub_subject = "<"+subject.substring(4);
 
                     // first add to yagoLowercase2Original
