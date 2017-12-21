@@ -426,6 +426,9 @@ public class ProcessSingleImageRunnable implements Runnable {
 
 
     public void run() {
+        incrementStartedCounter();
+        logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
+
         // Skip non photo file
         if (isNotPhoto(original_title)) {
             ProcessSingleImageRunnable.incrementCompletedCounter();
@@ -435,10 +438,6 @@ public class ProcessSingleImageRunnable implements Runnable {
         isFlickr = false;
         isPanoramio = false;
         boolean needToMatchTitle = true;
-
-
-        incrementStartedCounter();
-        logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
         MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = this.mediaWikiCommonsAPI.createMeatadata(original_title);
         //Filter out non-topical categories
