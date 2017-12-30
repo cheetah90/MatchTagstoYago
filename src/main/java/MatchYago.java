@@ -3,6 +3,7 @@ import fromOtherSources.PatternHardExtractor;
 import fromOtherSources.WordnetExtractor;
 import utils.Theme;
 
+import java.beans.PropertyEditor;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -287,6 +288,7 @@ public class MatchYago {
         // Looping and profile the progress
         while (ProcessSingleImageRunnable.getCompletedCounter() < numofImages) {
             System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
+            logger.info("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
             try {
                 synchronized (this) {
                     this.wait(10000);
@@ -299,6 +301,13 @@ public class MatchYago {
         System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
+        
+        // profile the execution time
+        logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessSingleImageRunnable.time_mediaWikipeida.getMean());
+        logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessSingleImageRunnable.time_preprocessCommonsMetadata.getMean());
+        logger.info("The avg execution time to process one category is: " + ProcessSingleImageRunnable.time_processOneCategory.getMean());
+        logger.info("The avg execution time to process one description is: " + ProcessSingleImageRunnable.time_processOneDescription.getMean());
+
     }
 
     /** Read file backwards. Does not use buffers, therefore slow */

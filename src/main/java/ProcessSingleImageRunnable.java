@@ -12,6 +12,8 @@ import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.stat.descriptive.SynchronizedSummaryStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utils.NLPUtils;
@@ -105,6 +107,15 @@ public class ProcessSingleImageRunnable implements Runnable {
 
     private static final Object translationLock = new Object();
 
+    // DEBUG: for debug purpose only
+    static final SummaryStatistics time_mediaWikipeida = new SynchronizedSummaryStatistics();
+
+    static final SummaryStatistics time_preprocessCommonsMetadata = new SynchronizedSummaryStatistics();
+
+    static final SummaryStatistics time_processOneCategory = new SynchronizedSummaryStatistics();
+
+    static final SummaryStatistics time_processOneDescription = new SynchronizedSummaryStatistics();
+
     /**
      * Finish static methods and variables
      */
@@ -131,8 +142,8 @@ public class ProcessSingleImageRunnable implements Runnable {
             this.translatedText = translatedText;
             this.lang = lang;
         }
-
     }
+
     private static final MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
     private Translate googleTranslate;
@@ -427,6 +438,9 @@ public class ProcessSingleImageRunnable implements Runnable {
 
     public void run() {
         try {
+            long startTime;
+            long endTime;
+
             incrementStartedCounter();
             logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
@@ -440,19 +454,31 @@ public class ProcessSingleImageRunnable implements Runnable {
             isPanoramio = false;
             boolean needToMatchTitle = true;
 
+            startTime = System.currentTimeMillis();
             MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
+            endTime = System.currentTimeMillis();
+            logger.debug("Execution time for mediaWikiCommonsAPI.createMeatadata(): " + (endTime - startTime));
+            time_mediaWikipeida.addValue((endTime - startTime));
+
             //Filter out non-topical categories
+            startTime = System.currentTimeMillis();
             preprocessCommonsMetadata(commonsMetadata);
+            endTime = System.currentTimeMillis();
+            logger.debug("Execution time for preprocessCommonsMetadata(): " + (endTime - startTime));
+            time_preprocessCommonsMetadata.addValue((endTime - startTime));
 
             Set<String> allYagoEntities = new HashSet<>();
             String yago_match = null;
 
             //Parse the Categories
             for (String category: commonsMetadata.getCategories()) {
+                startTime = System.currentTimeMillis();
                 try {
                     if (category != null && !category.isEmpty()) {
                         // Translate
+                        startTime = System.currentTimeMillis();
                         ProcessSingleImageRunnable.TranslationResults translationResults = translateToEnglish(category);
+                        endTime = System.currentTimeMillis();
 
                         // Match normally
                         yago_match = matchNounPhraseTranslation2Yago(translationResults);
@@ -480,12 +506,14 @@ public class ProcessSingleImageRunnable implements Runnable {
                     logger.error("Error when parsing category: " + category);
                     logger.error(exception.getStackTrace());
                 }
-
+                endTime = System.currentTimeMillis();
+                logger.debug("Execution time to process one category: " + (endTime - startTime));
+                time_processOneCategory.addValue((endTime - startTime));
             }
 
             // Nulify yago_match because we will always try to match descriptions.
             yago_match = null;
-
+            startTime = System.currentTimeMillis();
             try {
                 // If the description exist try to match it
                 if (commonsMetadata.getDescription() != null && !commonsMetadata.getDescription().isEmpty()) {
@@ -523,8 +551,12 @@ public class ProcessSingleImageRunnable implements Runnable {
                 logger.error("Error when parsing description: " + commonsMetadata.getDescription());
                 logger.error(exception.getStackTrace());
             }
+            endTime = System.currentTimeMillis();
+            logger.debug("Execution time to process one description " + (endTime - startTime));
+            time_processOneDescription.addValue((endTime - startTime));
 
 
+            // Start to match the title
             try {
                 // If no thing is matched so far, try to match the original_title
                 if (yago_match == null && needToMatchTitle) {
