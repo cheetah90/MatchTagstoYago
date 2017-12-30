@@ -476,9 +476,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 try {
                     if (category != null && !category.isEmpty()) {
                         // Translate
-                        startTime = System.currentTimeMillis();
                         ProcessSingleImageRunnable.TranslationResults translationResults = translateToEnglish(category);
-                        endTime = System.currentTimeMillis();
 
                         // Match normally
                         yago_match = matchNounPhraseTranslation2Yago(translationResults);
