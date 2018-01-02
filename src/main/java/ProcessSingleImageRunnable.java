@@ -501,9 +501,6 @@ public class ProcessSingleImageRunnable implements Runnable {
                                 // print to per_tag txt
                                 appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                                // print to std out
-                                logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
-
                                 // add the categories to yago_match
                                 allYagoEntities.add(yago_match);
                             }
@@ -546,9 +543,6 @@ public class ProcessSingleImageRunnable implements Runnable {
                             // print to per_tag txt
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                            // print to std out
-                            logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
-
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
                         }
@@ -588,9 +582,6 @@ public class ProcessSingleImageRunnable implements Runnable {
                                 // print to per_tag txt
                                 appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                                // print to std out
-                                logger.debug(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match);
-
                                 // add the categories to yago_match
                                 allYagoEntities.add(yago_match);
                             }
@@ -611,6 +602,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
         } finally {
             long endTime_img = System.currentTimeMillis();
+            logger.debug("Execution time to process one description " + (endTime_img - startTime_img));
             time_oneImage.addValue((endTime_img - startTime_img));
             ProcessSingleImageRunnable.incrementCompletedCounter();
         }
