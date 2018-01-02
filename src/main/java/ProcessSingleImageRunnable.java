@@ -451,7 +451,6 @@ public class ProcessSingleImageRunnable implements Runnable {
 
             // Skip non photo file
             if (isNotPhoto(original_title)) {
-                ProcessSingleImageRunnable.incrementCompletedCounter();
                 return;
             }
 
