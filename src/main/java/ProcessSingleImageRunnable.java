@@ -191,15 +191,18 @@ public class ProcessSingleImageRunnable implements Runnable {
             // Use local language detector
             if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
                 //load all languages:
-                List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
+                if (languageDetector == null && textObjectFactory == null) {
+                    List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
 
-                //build language detector:
-                languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
-                        .withProfiles(languageProfiles)
-                        .build();
+                    //build language detector:
+                    languageDetector = LanguageDetectorBuilder.create(NgramExtractors.standard())
+                            .withProfiles(languageProfiles)
+                            .build();
 
-                //create a text object factory
-                textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+                    //create a text object factory
+                    textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+                }
+
             }
         } catch (Exception exception) {
             logger.error(exception.getStackTrace());
@@ -367,6 +370,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 Optional<LdLocale> langOptional = languageDetector.detect(textObject);
                 lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
             }
+            
             // translate oc to fr
             lang = lang.equals("oc")?"fr":lang;
         } else {
