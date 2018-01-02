@@ -116,6 +116,8 @@ public class ProcessSingleImageRunnable implements Runnable {
 
     static final SummaryStatistics time_processOneDescription = new SynchronizedSummaryStatistics();
 
+    static final SummaryStatistics time_oneImage = new SynchronizedSummaryStatistics();
+
     /**
      * Finish static methods and variables
      */
@@ -438,6 +440,8 @@ public class ProcessSingleImageRunnable implements Runnable {
 
 
     public void run() {
+        long startTime_img = System.currentTimeMillis();
+
         try {
             long startTime;
             long endTime;
@@ -601,6 +605,8 @@ public class ProcessSingleImageRunnable implements Runnable {
 
             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
         } finally {
+            long endTime_img = System.currentTimeMillis();
+            time_oneImage.addValue((endTime_img - startTime_img));
             ProcessSingleImageRunnable.incrementCompletedCounter();
         }
     }

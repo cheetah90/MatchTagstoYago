@@ -307,6 +307,7 @@ public class MatchYago {
         logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessSingleImageRunnable.time_preprocessCommonsMetadata.getMean());
         logger.info("The avg execution time to process one category is: " + ProcessSingleImageRunnable.time_processOneCategory.getMean());
         logger.info("The avg execution time to process one description is: " + ProcessSingleImageRunnable.time_processOneDescription.getMean());
+        logger.info("The avg execution time to process one image is: " + ProcessSingleImageRunnable.time_oneImage.getMean());
 
     }
 
