@@ -186,11 +186,13 @@ public class ProcessSingleImageRunnable implements Runnable {
             // Set up the Google Translate API connection
             GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/wikicommons-1c391c623d29.json"));
             this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+
+            // Set up the MediaWikiCommons API
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
             // Use local language detector
             if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-                //load all languages:
+                //load the static language detector if not already:
                 if (languageDetector == null && textObjectFactory == null) {
                     List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
 
@@ -251,7 +253,7 @@ public class ProcessSingleImageRunnable implements Runnable {
     }
 
     private boolean isValidNounGroup(String current_category) {
-        // update Flickr and Panoramio counter accordingly TODO: this need to ba thread safe implementation
+        // update Flickr and Panoramio counter accordingly
         if (current_category.toLowerCase().contains("flickr")) {
             isFlickr = true;
         }
@@ -370,7 +372,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 Optional<LdLocale> langOptional = languageDetector.detect(textObject);
                 lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
             }
-            
+
             // translate oc to fr
             lang = lang.equals("oc")?"fr":lang;
         } else {
