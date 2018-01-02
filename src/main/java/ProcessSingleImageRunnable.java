@@ -144,7 +144,7 @@ public class ProcessSingleImageRunnable implements Runnable {
         }
     }
 
-    private static final MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
+    private MediaWikiCommonsAPI mediaWikiCommonsAPI;
 
     private Translate googleTranslate;
 
@@ -184,6 +184,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             // Set up the Google Translate API connection
             GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/wikicommons-1c391c623d29.json"));
             this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+            this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
             // Use local language detector
             if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
@@ -455,9 +456,9 @@ public class ProcessSingleImageRunnable implements Runnable {
             boolean needToMatchTitle = true;
 
             startTime = System.currentTimeMillis();
-            MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata(original_title);
+            MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMetadata(original_title);
             endTime = System.currentTimeMillis();
-            logger.debug("Execution time for mediaWikiCommonsAPI.createMeatadata(): " + (endTime - startTime));
+            logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
             time_mediaWikipeida.addValue((endTime - startTime));
 
             //Filter out non-topical categories

@@ -64,7 +64,7 @@ public class MediaWikiCommonsAPI {
     public MediaWikiCommonsAPI(){ }
 
     // Making this method thread-safe
-    public synchronized CommonsMetadata createMeatadata(String fileName){
+    public CommonsMetadata createMetadata(String fileName){
         CommonsMetadata metadata = new CommonsMetadata();
         metadata.setTitle(fileName);
         String requestURL = null;
@@ -126,7 +126,7 @@ public class MediaWikiCommonsAPI {
     public static void main(String[] args){
         MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
-        CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMeatadata("Plenário_do_Senado_(18252811193).jpg");
+        CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMetadata("Plenário_do_Senado_(18252811193).jpg");
 
     }
 
