@@ -164,7 +164,7 @@ public class MatchYago {
                     }
                 }
             } else {
-                logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
+                //logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
             }
         }
     }
@@ -198,7 +198,7 @@ public class MatchYago {
 
             }
             else {
-                logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
+                //logger.debug("Invalid yago record: subject=" + subject + " / object=" + object);
             }
 
         }
