@@ -467,7 +467,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             startTime = System.currentTimeMillis();
             MediaWikiCommonsAPI.CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMetadata(original_title);
             endTime = System.currentTimeMillis();
-            logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
+            //logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
             time_mediaWikipeida.addValue((endTime - startTime));
 
             //Filter out non-topical categories
@@ -512,7 +512,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                     logger.error(exception.getStackTrace());
                 }
                 endTime = System.currentTimeMillis();
-                logger.debug("Execution time to process one category: " + (endTime - startTime));
+                //logger.debug("Execution time to process one category: " + (endTime - startTime));
                 time_processOneCategory.addValue((endTime - startTime));
             }
 
@@ -554,7 +554,7 @@ public class ProcessSingleImageRunnable implements Runnable {
                 logger.error(exception.getStackTrace());
             }
             endTime = System.currentTimeMillis();
-            logger.debug("Execution time to process one description " + (endTime - startTime));
+            //logger.debug("Execution time to process one description " + (endTime - startTime));
             time_processOneDescription.addValue((endTime - startTime));
 
 
@@ -602,7 +602,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
         } finally {
             long endTime_img = System.currentTimeMillis();
-            logger.debug("Execution time to process one description " + (endTime_img - startTime_img));
+            logger.debug("Execution time to process one image " + (endTime_img - startTime_img));
             time_oneImage.addValue((endTime_img - startTime_img));
             ProcessSingleImageRunnable.incrementCompletedCounter();
         }
