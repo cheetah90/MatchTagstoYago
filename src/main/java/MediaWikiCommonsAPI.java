@@ -4,10 +4,15 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.*;
 
 
 public class MediaWikiCommonsAPI {
+    private static final Logger logger = LogManager.getLogger(MediaWikiCommonsAPI.class);
+
     public class CommonsMetadata {
         public CommonsMetadata(String title, List<String> categories, String description, int pageID){
             this.title = title;
@@ -115,8 +120,8 @@ public class MediaWikiCommonsAPI {
             }
 
         } catch (IOException exception) {
-            //System.out.println("(in catch block) Accessing URL: " + requestURL);
-            exception.printStackTrace();
+            logger.debug("Error Accessing URL: " + requestURL);
+            logger.debug(exception.getStackTrace());
         }
 
 
