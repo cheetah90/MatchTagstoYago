@@ -474,7 +474,7 @@ public class ProcessSingleImageRunnable implements Runnable {
             startTime = System.currentTimeMillis();
             preprocessCommonsMetadata(commonsMetadata);
             endTime = System.currentTimeMillis();
-            logger.debug("Execution time for preprocessCommonsMetadata(): " + (endTime - startTime));
+            //logger.debug("Execution time for preprocessCommonsMetadata(): " + (endTime - startTime));
             time_preprocessCommonsMetadata.addValue((endTime - startTime));
 
             Set<String> allYagoEntities = new HashSet<>();
