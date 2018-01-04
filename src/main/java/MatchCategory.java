@@ -410,8 +410,10 @@ public class MatchCategory {
         HashSet<String> resultset = this.yagoLowercase2Original.get(queryStringAsEntity);
         if ( resultset != null){
             if (resultset.size() >1) {
-                logger.info("More than one originals for this lowercase, so I output all!");
-                return resultset.toString();
+                //logger.info("More than one originals for this lowercase, so I output all!");
+                for (String yagoitem: resultset) {
+                    return yagoitem;
+                }
             }
             else {
                 for (String yagoitem: resultset) {
@@ -424,8 +426,10 @@ public class MatchCategory {
         resultset = this.yagoLowercase2Original.get(queryStringAsCategory);
         if ( resultset != null){
             if (resultset.size() >1) {
-                logger.info("More than one originals for this lowercase, so I output all!");
-                return resultset.toString();
+                //logger.info("More than one originals for this lowercase, so I output all!");
+                for (String yagoitem: resultset) {
+                    return yagoitem;
+                }
             }
             else {
                 for (String yagoitem: resultset) {
