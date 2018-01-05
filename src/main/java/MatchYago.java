@@ -47,9 +47,9 @@ public class MatchYago {
 
             PROPERTIES.load(new InputStreamReader(new FileInputStream("./src/main/resources/config.properties"), "UTF8"));
 
-            // Load the samples
-            this.db4SamplesConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Samples.port")+"/"+PROPERTIES.getProperty("db4Samples.name"),
-                    PROPERTIES.getProperty("db4Samples.username"), PROPERTIES.getProperty("db4Samples.password"));
+//            // Load the samples
+//            this.db4SamplesConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Samples.port")+"/"+PROPERTIES.getProperty("db4Samples.name"),
+//                    PROPERTIES.getProperty("db4Samples.username"), PROPERTIES.getProperty("db4Samples.password"));
 
 
             // Initialize hardcoded mappings and set the static variable
@@ -57,7 +57,7 @@ public class MatchYago {
             ProcessSingleImageRunnable.setNonConceptualCategories(PatternHardExtractor.CATEGORYPATTERNS.factCollection().seekStringsOfType("<_yagoNonConceptualWord>"));
 
 
-        } catch (IOException | SQLException  e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -87,6 +87,12 @@ public class MatchYago {
 
     }
 
+    /**
+     * @deprecated
+     * read all page title from sql database. Should use
+     * @return
+     * @throws SQLException
+     */
     private List<String >queryAllPageTitles() throws SQLException{
         ArrayList<String> pageTitles = new ArrayList<>();
 
@@ -256,30 +262,62 @@ public class MatchYago {
         }
     }
 
+    private int getLineNumberofFile(String file_ImageNames) {
+        try {
+            Process p = Runtime.getRuntime().exec("wc -l " + file_ImageNames);
+            p.waitFor();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+            String line = reader.readLine();
+            return Integer.parseInt(line.trim().split(" ")[0]);
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        return 0;
+
+    }
+
 
     private void startWorking(){
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
 
-        List<String> pageTitles = null;
-        int numofImages;
-
-        try {
-            pageTitles = queryAllPageTitles();
-            numofImages = pageTitles.size();
-            logger.info("Total number of images to process: " + numofImages);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-            logger.error("Failed to load the name of the images to be processed.");
-            return;
-        }
-
         // Create ThreadPool
         ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(PROPERTIES.getProperty("maxThreadPool")));
-        // Create task for each image
-        for (String original_title: pageTitles){
-            pool.execute(new ProcessSingleImageRunnable(original_title));
+
+        String file_ImageNames = "./image_names.txt";
+
+        int numofImages = getLineNumberofFile(file_ImageNames);
+
+//        try {
+//            pageTitles = queryAllPageTitles();
+//            numofImages = pageTitles.size();
+//            logger.info("Total number of images to process: " + numofImages);
+//        } catch (SQLException exception) {
+//            exception.printStackTrace();
+//            logger.error("Failed to load the name of the images to be processed.");
+//            return;
+//        }
+
+//        // Create task for each image
+//        for (String original_title: pageTitles){
+//            pool.execute(new ProcessSingleImageRunnable(original_title));
+//        }
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file_ImageNames));
+            String original_title;
+            while ((original_title = br.readLine()) != null) {
+                // process the line.
+                pool.execute(new ProcessSingleImageRunnable(original_title));
+            }
+        } catch (Exception exception) {
+            logger.error("filenames.txt does not exist!");
+            exception.printStackTrace();
         }
 
         //Shutdown
