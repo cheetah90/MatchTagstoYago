@@ -125,7 +125,7 @@ public class MediaWikiCommonsAPI {
 
         } catch (IOException exception) {
             logger.debug("Error accessing URL: " + requestURL);
-            logger.debug(exception.getStackTrace());
+            exception.printStackTrace();
             // Handle the error, if it's too hot, wait for a sec
             synchronized (lockFailureCounter) {
                 if ( num_continuous_failures < 3){
