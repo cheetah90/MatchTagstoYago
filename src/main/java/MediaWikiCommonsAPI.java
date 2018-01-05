@@ -13,6 +13,10 @@ import org.json.*;
 public class MediaWikiCommonsAPI {
     private static final Logger logger = LogManager.getLogger(MediaWikiCommonsAPI.class);
 
+    private static int num_continuous_failures = 0;
+
+    private static final Object lockFailureCounter = new Object();
+
     public class CommonsMetadata {
         public CommonsMetadata(String title, List<String> categories, String description, int pageID){
             this.title = title;
@@ -120,8 +124,22 @@ public class MediaWikiCommonsAPI {
             }
 
         } catch (IOException exception) {
-            logger.debug("Error Accessing URL: " + requestURL);
+            logger.debug("Error accessing URL: " + requestURL);
             logger.debug(exception.getStackTrace());
+            // Handle the error, if it's too hot, wait for a sec
+            synchronized (lockFailureCounter) {
+                if ( num_continuous_failures < 3){
+                    num_continuous_failures++;
+                } else {
+                    num_continuous_failures = 0;
+                    // The MediaWiki server might have detected us! Let's sleep for a while
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException interruptedEx) {
+                        interruptedEx.printStackTrace();
+                    }
+                }
+            }
         }
 
 
