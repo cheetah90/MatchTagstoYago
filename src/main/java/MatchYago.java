@@ -340,6 +340,7 @@ public class MatchYago {
         System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
+        logger.info("# of images failured on MediaWikiAPI: " + ProcessSingleImageRunnable.getFailuredImageCounter());
 
         // profile the execution time
         logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessSingleImageRunnable.time_mediaWikipeida.getMean());

@@ -51,8 +51,16 @@ public class ProcessSingleImageRunnable implements Runnable {
         return completedCounter;
     }
 
+    public static int getFailuredImageCounter(){
+        return failuredImageCounter;
+    }
+
     private synchronized static void incrementCompletedCounter() {
         completedCounter++;
+    }
+
+    private synchronized static void incrementFailuredImageCounter(){
+        failuredImageCounter++;
     }
 
     private synchronized static void incrementStartedCounter() {
@@ -106,6 +114,8 @@ public class ProcessSingleImageRunnable implements Runnable {
     private static TextObjectFactory textObjectFactory;
 
     private static final Object translationLock = new Object();
+
+    private static int failuredImageCounter = 0;
 
     // DEBUG: for debug purpose only
     static final SummaryStatistics time_mediaWikipeida = new SynchronizedSummaryStatistics();
@@ -469,6 +479,11 @@ public class ProcessSingleImageRunnable implements Runnable {
             endTime = System.currentTimeMillis();
             //logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
             time_mediaWikipeida.addValue((endTime - startTime));
+
+            if (commonsMetadata != null) {
+                incrementFailuredImageCounter();
+                return;
+            }
 
             //Filter out non-topical categories
             startTime = System.currentTimeMillis();
