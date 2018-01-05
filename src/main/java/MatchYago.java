@@ -3,7 +3,6 @@ import fromOtherSources.PatternHardExtractor;
 import fromOtherSources.WordnetExtractor;
 import utils.Theme;
 
-import java.beans.PropertyEditor;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
@@ -340,7 +339,7 @@ public class MatchYago {
         System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
-        logger.info("# of images failured on MediaWikiAPI: " + ProcessSingleImageRunnable.getFailuredImageCounter());
+        logger.info("# of images failured on MediaWikiAPI: " + ProcessSingleImageRunnable.getFailedImageCounter());
 
         // profile the execution time
         logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessSingleImageRunnable.time_mediaWikipeida.getMean());
