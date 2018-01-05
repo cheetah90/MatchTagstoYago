@@ -16,4 +16,4 @@ output_per_tag.tsv
 config.properties
 
 # ignore the image_names.txt
-./image_names.txt
+image_names.txt
