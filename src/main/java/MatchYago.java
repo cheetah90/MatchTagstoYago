@@ -292,6 +292,7 @@ public class MatchYago {
         String file_ImageNames = "./image_names.txt";
 
         int numofImages = getLineNumberofFile(file_ImageNames);
+        logger.info("Total number of images to process: " + numofImages);
 
 //        try {
 //            pageTitles = queryAllPageTitles();
