@@ -344,13 +344,13 @@ public class MatchYago {
         while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages) {
             System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
-            try {
-                synchronized (this) {
-                    this.wait(10000);
-                }
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
+//            try {
+//                synchronized (this) {
+//                    this.wait(10000);
+//                }
+//            } catch (InterruptedException exception) {
+//                exception.printStackTrace();
+//            }
         }
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
