@@ -3,6 +3,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -67,42 +68,66 @@ public class MediaWikiCommonsAPI {
     }
 
 
-    private String baseURL = "https://commons.wikimedia.org/w/api.php?action=query&titles=File:";
+    private String baseURL = "https://commons.wikimedia.org/w/api.php?action=query&titles=";
     private String charset = "UTF-8";
 
     public MediaWikiCommonsAPI(){ }
 
     // Making this method thread-safe
-    public CommonsMetadata createMetadata(String fileName){
-        CommonsMetadata metadata = new CommonsMetadata();
-        metadata.setTitle(fileName);
+    public List<CommonsMetadata> createMetadata(List<String> batch_filenames){
+        // Initiate the return object
+        List<CommonsMetadata> commonsMetadata_array = new ArrayList<>();
+
+        // concat titles
+        StringBuilder strBuilder = new StringBuilder();
+        for (String title: batch_filenames) {
+            strBuilder.append("|File:");
+            strBuilder.append(title);
+        }
+        //remove the last "|"
+        String titles_all = strBuilder.toString();
+        titles_all = titles_all.substring(1);
+
         String requestURL = null;
 
-        try {
-            requestURL = baseURL + URLEncoder.encode(fileName, charset) + "&prop=imageinfo&iiprop=extmetadata&format=json";
-            //System.out.println("(in try block) Accessing URL: " + requestURL);
+        try{
+            requestURL = baseURL + URLEncoder.encode(titles_all, charset) + "&prop=imageinfo&iiprop=extmetadata&format=json";
 
             //Send HTTP Request
             URLConnection connection = new URL(requestURL).openConnection();
             connection.setRequestProperty("Accept-Charset", charset);
             InputStream response = connection.getInputStream();
 
+            // Get response into string
             BufferedReader streamReader = new BufferedReader(new InputStreamReader(response, charset));
             StringBuilder responseStrBuilder = new StringBuilder();
-
             String inputStr;
-            while ((inputStr = streamReader.readLine()) != null)
+            while ((inputStr = streamReader.readLine()) != null) {
                 responseStrBuilder.append(inputStr);
+            }
+
+            // Parse the json
             JSONObject resultsJSON = new JSONObject(responseStrBuilder.toString());
-            JSONObject page = resultsJSON.getJSONObject("query").getJSONObject("pages");
-            if (page.keys().hasNext()) {
-                String pageid = page.keys().next();
-                JSONObject extmetadata = page.getJSONObject(pageid).getJSONArray("imageinfo").getJSONObject(0).getJSONObject("extmetadata");
+            JSONObject pagesJSON = resultsJSON.getJSONObject("query").getJSONObject("pages");
+
+
+            // Parse each pages and add to return object
+            Iterator<String> keys = pagesJSON.keys();
+
+            while (keys.hasNext()) {
+                // Initiate the COmmonsMetadata Objects
+                CommonsMetadata metadata = new CommonsMetadata();
 
                 // set pageid
+                String pageid = keys.next();
                 metadata.setPageID(Integer.parseInt(pageid));
 
+                // Set title
+                String title = pagesJSON.getJSONObject(pageid).getString("title").substring(5).replaceAll(" ", "_");
+                metadata.setTitle(title);
+
                 //Parse and add categories
+                JSONObject extmetadata = pagesJSON.getJSONObject(pageid).getJSONArray("imageinfo").getJSONObject(0).getJSONObject("extmetadata");
                 String[] raw_Categories = extmetadata.getJSONObject("Categories").getString("value").split("\\|");
                 ArrayList<String> strCategories = new ArrayList<>();
                 for (String currentCat: raw_Categories) {
@@ -121,6 +146,8 @@ public class MediaWikiCommonsAPI {
                     metadata.setDescription("");    //at least set something
                 }
 
+                // Add to the return object
+                commonsMetadata_array.add(metadata);
             }
 
         } catch (IOException exception) {
@@ -143,13 +170,17 @@ public class MediaWikiCommonsAPI {
         }
 
 
-        return metadata;
+        return commonsMetadata_array;
     }
 
     public static void main(String[] args){
         MediaWikiCommonsAPI mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
-        CommonsMetadata commonsMetadata = mediaWikiCommonsAPI.createMetadata("Plenário_do_Senado_(18252811193).jpg");
+        List<String> file_titles = new ArrayList<>();
+        file_titles.add("Groupe_Tribal_Percussions_-_250.jpg");
+        file_titles.add("Trzebnica,_Poland_-_panoramio_(26).jpg");
+
+        List<CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadata(file_titles);
 
     }
 

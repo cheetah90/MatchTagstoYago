@@ -20,6 +20,8 @@ public class MatchYago {
 
     private static final Properties PROPERTIES = new Properties();
 
+    private static final int NUM_IMAGES_IN_BATCH = 50;
+
     private static final Logger logger = LogManager.getLogger(MatchYago.class);
 
     private Connection db4SamplesConnection;
@@ -52,8 +54,8 @@ public class MatchYago {
 
 
             // Initialize hardcoded mappings and set the static variable
-            ProcessSingleImageRunnable.setPreferredMeanings(WordnetExtractor.PREFMEANINGS.factCollection().getPreferredMeanings());
-            ProcessSingleImageRunnable.setNonConceptualCategories(PatternHardExtractor.CATEGORYPATTERNS.factCollection().seekStringsOfType("<_yagoNonConceptualWord>"));
+            ProcessBatchImageRunnable.setPreferredMeanings(WordnetExtractor.PREFMEANINGS.factCollection().getPreferredMeanings());
+            ProcessBatchImageRunnable.setNonConceptualCategories(PatternHardExtractor.CATEGORYPATTERNS.factCollection().seekStringsOfType("<_yagoNonConceptualWord>"));
 
 
         } catch (Exception e) {
@@ -66,8 +68,8 @@ public class MatchYago {
         if (PROPERTIES.getProperty("LoadYago2Memory").equals("true")) {
             logger.info("Choose to load Yago data into memory!");
             loadYagotoMemory();
-            ProcessSingleImageRunnable.setYagoLowercase2Original(yagoLowercase2Original);
-            ProcessSingleImageRunnable.setYagoOriginal2Type(yagoOriginal2Type);
+            ProcessBatchImageRunnable.setYagoLowercase2Original(yagoLowercase2Original);
+            ProcessBatchImageRunnable.setYagoOriginal2Type(yagoOriginal2Type);
 
         } else {
             logger.info("Choose to load Yago data from a database!");
@@ -75,7 +77,7 @@ public class MatchYago {
                 Connection yagoConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Yago.port")+"/"+PROPERTIES.getProperty("db4Yago.name"),
                         PROPERTIES.getProperty("db4Yago.username"), PROPERTIES.getProperty("db4Yago.password"));
 
-                ProcessSingleImageRunnable.setYagoConnection(yagoConnection);
+                ProcessBatchImageRunnable.setYagoConnection(yagoConnection);
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -305,15 +307,30 @@ public class MatchYago {
 
 //        // Create task for each image
 //        for (String original_title: pageTitles){
-//            pool.execute(new ProcessSingleImageRunnable(original_title));
+//            pool.execute(new ProcessBatchImageRunnable(original_title));
 //        }
 
         try {
+            // Buffered read the file
             BufferedReader br = new BufferedReader(new FileReader(file_ImageNames));
-            String original_title;
-            while ((original_title = br.readLine()) != null) {
-                // process the line.
-                pool.execute(new ProcessSingleImageRunnable(original_title));
+            boolean stayInLoop = true;
+
+            // load 50 titles and then assign to a thread.
+            while (stayInLoop) {
+                ArrayList<String> batch_titles = new ArrayList<>();
+
+                // gather 50 titles and then process
+                for (int i = 0; i< NUM_IMAGES_IN_BATCH && stayInLoop; i++) {
+                    String title;
+                    if ((title = br.readLine()) != null) {
+                        batch_titles.add(title);
+                    } else {
+                        stayInLoop = false;
+                    }
+                }
+
+                pool.execute(new ProcessBatchImageRunnable(batch_titles));
+
             }
         } catch (Exception exception) {
             logger.error("filenames.txt does not exist!");
@@ -324,9 +341,9 @@ public class MatchYago {
         pool.shutdown();
 
         // Looping and profile the progress
-        while (ProcessSingleImageRunnable.getCompletedCounter() < numofImages) {
-            System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
-            logger.info("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
+        while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages) {
+            System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
+            logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             try {
                 synchronized (this) {
                     this.wait(10000);
@@ -336,17 +353,17 @@ public class MatchYago {
             }
         }
 
-        System.out.println("Finished processing " + ProcessSingleImageRunnable.getCompletedCounter() + "/"+numofImages);
-        logger.info("# of Flickr images: " + ProcessSingleImageRunnable.getFlickrCounter());
-        logger.info("# of Panoramio images:" + ProcessSingleImageRunnable.getPanoramioCounter());
-        logger.info("# of images failured on MediaWikiAPI: " + ProcessSingleImageRunnable.getFailedImageCounter());
+        System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
+        logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
+        logger.info("# of Panoramio images:" + ProcessBatchImageRunnable.getPanoramioCounter());
+        logger.info("# of images failured on MediaWikiAPI: " + ProcessBatchImageRunnable.getFailedImageCounter());
 
         // profile the execution time
-        logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessSingleImageRunnable.time_mediaWikipeida.getMean());
-        logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessSingleImageRunnable.time_preprocessCommonsMetadata.getMean());
-        logger.info("The avg execution time to process one category is: " + ProcessSingleImageRunnable.time_processOneCategory.getMean());
-        logger.info("The avg execution time to process one description is: " + ProcessSingleImageRunnable.time_processOneDescription.getMean());
-        logger.info("The avg execution time to process one image is: " + ProcessSingleImageRunnable.time_oneImage.getMean());
+        logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessBatchImageRunnable.time_mediaWikipeida.getMean());
+        logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessBatchImageRunnable.time_preprocessCommonsMetadata.getMean());
+        logger.info("The avg execution time to process one category is: " + ProcessBatchImageRunnable.time_processOneCategory.getMean());
+        logger.info("The avg execution time to process one description is: " + ProcessBatchImageRunnable.time_processOneDescription.getMean());
+        logger.info("The avg execution time to process one image is: " + ProcessBatchImageRunnable.time_oneImage.getMean());
 
     }
 
