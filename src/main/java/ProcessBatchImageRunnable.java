@@ -75,6 +75,10 @@ public class ProcessBatchImageRunnable implements Runnable {
         PanoramioCounter++;
     }
 
+    private synchronized static void incrementNonPhotoCounter() { nonPhotoCounter++;}
+
+    private synchronized static void incrementValidPhotoCounter() {validPhotoCounter++;}
+
     public static int getFlickrCounter(){
         return FlickrCounter;
     }
@@ -82,6 +86,10 @@ public class ProcessBatchImageRunnable implements Runnable {
     public static int getPanoramioCounter(){
         return PanoramioCounter;
     }
+
+    public static int getNonPhotoCounter() {return nonPhotoCounter; }
+
+    public static int getValidPhotoCounter() {return validPhotoCounter;}
 
     /** Holds the preferred meanings */
     private static Map<String, String> preferredMeanings;
@@ -100,6 +108,10 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static int completedCounter = 0;
 
     private static int startedCounter = 0;
+
+    private static int nonPhotoCounter = 0;
+
+    private static int validPhotoCounter = 0;
 
     private static final int MAXTOKENSINAPHRASE = 11;
 
@@ -467,14 +479,18 @@ public class ProcessBatchImageRunnable implements Runnable {
             long startTime;
             long endTime;
 
+            // Retrieve all the metadata
             startTime = System.currentTimeMillis();
             List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadata(this.originalTitleArray);
             endTime = System.currentTimeMillis();
+            time_mediaWikipeida.addValue((endTime - startTime));
 
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
+                // threadsafe increment the started Counter
                 incrementStartedCounter();
 
                 try {
+                    // If failed to parse JSON for this object, skip but increment the failure counter
                     if (commonsMetadata.getTitle() == null) {
                         incrementFailedImageCounter();
                         continue;
@@ -485,16 +501,14 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                     // Skip non photo file
                     if (isNotPhoto(original_title)) {
+                        incrementNonPhotoCounter();
                         continue;
                     }
 
+                    // Flag for flickr and panoramio counter
                     isFlickr = false;
                     isPanoramio = false;
                     boolean needToMatchTitle = true;
-
-
-                    //logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
-                    time_mediaWikipeida.addValue((endTime - startTime));
 
                     //Filter out non-topical categories
                     startTime = System.currentTimeMillis();
@@ -625,6 +639,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     if (isFlickr) {incrementFlickrCounter();}
                     if (isPanoramio) {incrementPanoramioCounter();}
 
+                    incrementValidPhotoCounter();
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
                 } finally {

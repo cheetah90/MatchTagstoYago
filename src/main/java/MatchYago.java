@@ -344,13 +344,15 @@ public class MatchYago {
         logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessBatchImageRunnable.getPanoramioCounter());
         logger.info("# of images failured on MediaWikiAPI: " + ProcessBatchImageRunnable.getFailedImageCounter());
+        logger.info("# of non image files: " + ProcessBatchImageRunnable.getNonPhotoCounter());
+        logger.info("# of valid images: " + ProcessBatchImageRunnable.getValidPhotoCounter());
 
         // profile the execution time
         logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessBatchImageRunnable.time_mediaWikipeida.getMean());
         logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessBatchImageRunnable.time_preprocessCommonsMetadata.getMean());
         logger.info("The avg execution time to process one category is: " + ProcessBatchImageRunnable.time_processOneCategory.getMean());
         logger.info("The avg execution time to process one description is: " + ProcessBatchImageRunnable.time_processOneDescription.getMean());
-        logger.info("The avg execution time to process one image is: " + ProcessBatchImageRunnable.time_oneImage.getMean());
+        logger.info("The avg execution time to process one batch of images (50) is: " + ProcessBatchImageRunnable.time_oneImage.getMean());
 
     }
 
