@@ -148,7 +148,7 @@ public class MediaWikiCommonsAPI {
                     }
                 } catch (JSONException exception) {
                     metadata = new CommonsMetadata();
-                    logger.error("failed to parse one metadata!");
+                    logger.error("Error: failed to parse one metadata!");
                 }
 
 
@@ -157,7 +157,7 @@ public class MediaWikiCommonsAPI {
             }
 
         } catch (IOException exception) {
-            logger.debug("Error accessing URL: " + requestURL);
+            logger.error("Error: can't accessing URL: " + requestURL);
             exception.printStackTrace();
             // Handle the error, if it's too hot, wait for a sec
             synchronized (lockFailureCounter) {

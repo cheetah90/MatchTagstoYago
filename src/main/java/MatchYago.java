@@ -36,6 +36,10 @@ public class MatchYago {
     // Holds the nonconceptual categorie
     protected Set<String> nonConceptualCategories = new HashSet<>();
 
+    // Counters to determine if wait too long
+    int lastCounter = 1;
+    int secondLastCounter = 0;
+
     MatchCategory matchCategory;
 
     public MatchYago(){
@@ -281,6 +285,16 @@ public class MatchYago {
 
     }
 
+    private boolean waitTooLong(){
+        if ((lastCounter == secondLastCounter) && (lastCounter == ProcessBatchImageRunnable.getCompletedCounter())) {
+            return true;
+        } else {
+            secondLastCounter = lastCounter;
+            lastCounter = ProcessBatchImageRunnable.getCompletedCounter();
+            return false;
+        }
+    }
+
 
     private void startWorking(){
         //clearOutputfile
@@ -324,11 +338,13 @@ public class MatchYago {
             exception.printStackTrace();
         }
 
-        //Shutdown
+        //Finished creating the threads
         pool.shutdown();
 
+        //Initialize the counter
+
         // Looping and profile the progress
-        while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages) {
+        while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages && ! waitTooLong()) {
             System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             try {
