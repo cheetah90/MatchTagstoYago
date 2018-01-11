@@ -376,13 +376,17 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     }
 
+    private boolean needHardCodetoEN(String langCode) {
+        return langCode.equals("an") || langCode.equals("ast") || langCode.equals("br");
+    }
+
     private ProcessBatchImageRunnable.TranslationResults translateToEnglish(String original_text){
         String strip_original = FactComponent.stripCat(original_text).trim();
         strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
         // Just use the first paragraph in case the text is a combination of English and foreign language
         // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
         if (strip_original.contains("\n")) {
-            strip_original = strip_original.split("\n")[0];
+            strip_original = strip_original.split("\n")[0].trim();
         }
         String englishText = original_text;
 
@@ -400,7 +404,9 @@ public class ProcessBatchImageRunnable implements Runnable {
             lang = lang.equals("oc")?"fr":lang;
 
             // translate br to en
-            lang = lang.equals("br")?"en":lang;
+            if (needHardCodetoEN(lang)) {
+                lang = "en";
+            }
 
         } else {
             Detection detection = googleTranslate.detect(strip_original);
