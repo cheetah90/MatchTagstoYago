@@ -271,7 +271,7 @@ public class MatchYago {
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
             String line = reader.readLine();
-            return Integer.parseInt(line.trim().split(" ")[0]) + 1; // I don't know why it's off by 1
+            return Integer.parseInt(line.trim().split(" ")[0]);
 
         } catch (Exception exception) {
             exception.printStackTrace();
