@@ -489,13 +489,13 @@ public class ProcessBatchImageRunnable implements Runnable {
                 // threadsafe increment the started Counter
                 incrementStartedCounter();
 
-                try {
-                    // If failed to parse JSON for this object, skip but increment the failure counter
-                    if (commonsMetadata.getTitle() == null) {
-                        incrementFailedImageCounter();
-                        continue;
-                    }
+                // If failed to parse JSON for this object, skip but increment the failure counter
+                if (commonsMetadata.getTitle() == null) {
+                    incrementFailedImageCounter();
+                    continue;
+                }
 
+                try {
                     String original_title = commonsMetadata.getTitle();
                     logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
