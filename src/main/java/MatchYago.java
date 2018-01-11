@@ -271,7 +271,7 @@ public class MatchYago {
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
             String line = reader.readLine();
-            return Integer.parseInt(line.trim().split(" ")[0]);
+            return Integer.parseInt(line.trim().split(" ")[0]) + 1; // I don't know why it's off by 1
 
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -295,21 +295,6 @@ public class MatchYago {
         int numofImages = getLineNumberofFile(file_ImageNames);
         logger.info("Total number of images to process: " + numofImages);
 
-//        try {
-//            pageTitles = queryAllPageTitles();
-//            numofImages = pageTitles.size();
-//            logger.info("Total number of images to process: " + numofImages);
-//        } catch (SQLException exception) {
-//            exception.printStackTrace();
-//            logger.error("Failed to load the name of the images to be processed.");
-//            return;
-//        }
-
-//        // Create task for each image
-//        for (String original_title: pageTitles){
-//            pool.execute(new ProcessBatchImageRunnable(original_title));
-//        }
-
         try {
             // Buffered read the file
             BufferedReader br = new BufferedReader(new FileReader(file_ImageNames));
@@ -329,8 +314,10 @@ public class MatchYago {
                     }
                 }
 
-                pool.execute(new ProcessBatchImageRunnable(batch_titles));
-
+                // Assign it to thread
+                if (batch_titles.size() > 0) {
+                    pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_titles)));
+                }
             }
         } catch (Exception exception) {
             logger.error("filenames.txt does not exist!");
@@ -344,13 +331,13 @@ public class MatchYago {
         while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages) {
             System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
-//            try {
-//                synchronized (this) {
-//                    this.wait(10000);
-//                }
-//            } catch (InterruptedException exception) {
-//                exception.printStackTrace();
-//            }
+            try {
+                synchronized (this) {
+                    this.wait(10000);
+                }
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
         }
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);

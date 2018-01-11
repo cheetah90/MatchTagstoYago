@@ -14,6 +14,7 @@ wikicommons-1c391c623d29.json
 output_per_img.tsv
 output_per_tag.tsv
 config.properties
+log4j2.xml
 
 # ignore the image_names.txt
 image_names.txt

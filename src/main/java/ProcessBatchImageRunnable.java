@@ -213,7 +213,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                             .build();
 
                     //create a text object factory
-                    textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
+                    textObjectFactory = CommonTextObjectFactories.forDetectingShortCleanText();
                 }
 
             }
@@ -386,6 +386,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // translate oc to fr
             lang = lang.equals("oc")?"fr":lang;
+
+            // translate br to en
+            lang = lang.equals("br")?"en":lang;
+
         } else {
             Detection detection = googleTranslate.detect(strip_original);
             lang = detection.getLanguage();
@@ -457,10 +461,9 @@ public class ProcessBatchImageRunnable implements Runnable {
 
 
     public void run() {
-        long startTime_img = System.currentTimeMillis();
+        long startTime_batch = System.currentTimeMillis();
 
         try {
-
             long startTime;
             long endTime;
 
@@ -469,51 +472,94 @@ public class ProcessBatchImageRunnable implements Runnable {
             endTime = System.currentTimeMillis();
 
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
-                String original_title = commonsMetadata.getTitle();
-
                 incrementStartedCounter();
-                logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
-                // Skip non photo file
-                if (isNotPhoto(original_title)) {
-                    return;
-                }
+                try {
+                    if (commonsMetadata.getTitle() == null) {
+                        incrementFailedImageCounter();
+                        continue;
+                    }
 
-                isFlickr = false;
-                isPanoramio = false;
-                boolean needToMatchTitle = true;
+                    String original_title = commonsMetadata.getTitle();
+                    logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
+
+                    // Skip non photo file
+                    if (isNotPhoto(original_title)) {
+                        continue;
+                    }
+
+                    isFlickr = false;
+                    isPanoramio = false;
+                    boolean needToMatchTitle = true;
 
 
-                //logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
-                time_mediaWikipeida.addValue((endTime - startTime));
+                    //logger.debug("Execution time for mediaWikiCommonsAPI.createMetadata(): " + (endTime - startTime));
+                    time_mediaWikipeida.addValue((endTime - startTime));
 
-                if (commonsMetadata != null) {
-                    incrementFailedImageCounter();
-                    return;
-                }
+                    //Filter out non-topical categories
+                    startTime = System.currentTimeMillis();
+                    preprocessCommonsMetadata(commonsMetadata);
+                    endTime = System.currentTimeMillis();
+                    //logger.debug("Execution time for preprocessCommonsMetadata(): " + (endTime - startTime));
+                    time_preprocessCommonsMetadata.addValue((endTime - startTime));
 
-                //Filter out non-topical categories
-                startTime = System.currentTimeMillis();
-                preprocessCommonsMetadata(commonsMetadata);
-                endTime = System.currentTimeMillis();
-                //logger.debug("Execution time for preprocessCommonsMetadata(): " + (endTime - startTime));
-                time_preprocessCommonsMetadata.addValue((endTime - startTime));
+                    Set<String> allYagoEntities = new HashSet<>();
+                    String yago_match = null;
 
-                Set<String> allYagoEntities = new HashSet<>();
-                String yago_match = null;
+                    //Parse the Categories
+                    for (String category: commonsMetadata.getCategories()) {
+                        startTime = System.currentTimeMillis();
+                        try {
+                            if (category != null && !category.isEmpty()) {
+                                // Translate
+                                ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(category);
 
-                //Parse the Categories
-                for (String category: commonsMetadata.getCategories()) {
+                                // Match normally
+                                yago_match = matchNounPhraseTranslation2Yago(translationResults);
+
+                                // Print results
+                                if (yago_match != null) {
+                                    // switch the needToMatchTitle flag
+                                    needToMatchTitle = false;
+
+                                    //prepare data to print to per_img txt
+                                    if (!allYagoEntities.contains(yago_match)){
+                                        // print to per_tag txt
+                                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
+
+                                        // add the categories to yago_match
+                                        allYagoEntities.add(yago_match);
+                                    }
+                                }
+                            }
+                        } catch (Exception exception) {
+                            logger.error("Error when parsing file: " + original_title);
+                            logger.error("Error when parsing category: " + category);
+                            logger.error(exception.getStackTrace());
+                        }
+                        endTime = System.currentTimeMillis();
+                        //logger.debug("Execution time to process one category: " + (endTime - startTime));
+                        time_processOneCategory.addValue((endTime - startTime));
+                    }
+
+                    // Nulify yago_match because we will always try to match descriptions.
+                    yago_match = null;
                     startTime = System.currentTimeMillis();
                     try {
-                        if (category != null && !category.isEmpty()) {
-                            // Translate
-                            ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(category);
+                        // If the description exist try to match it
+                        if (commonsMetadata.getDescription() != null && !commonsMetadata.getDescription().isEmpty()) {
+                            String strDescription = commonsMetadata.getDescription();
 
-                            // Match normally
-                            yago_match = matchNounPhraseTranslation2Yago(translationResults);
+                            // Translate for the first phrase
+                            ProcessBatchImageRunnable.TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
+                            String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
 
-                            // Print results
+                            // if the first phrase is short enough, match
+                            if (!firstPhraseEng.isEmpty() && firstPhraseEng.split("_").length < MAXTOKENSINAPHRASE && isValidNounGroup(firstPhraseEng)) {
+                                yago_match = matchNounPhraseTranslation2Yago(firstPhraseTranslation);
+                            }
+
+                            // Check and print
                             if (yago_match != null) {
                                 // switch the needToMatchTitle flag
                                 needToMatchTitle = false;
@@ -530,106 +576,67 @@ public class ProcessBatchImageRunnable implements Runnable {
                         }
                     } catch (Exception exception) {
                         logger.error("Error when parsing file: " + original_title);
-                        logger.error("Error when parsing category: " + category);
+                        logger.error("Error when parsing description: " + commonsMetadata.getDescription());
                         logger.error(exception.getStackTrace());
                     }
                     endTime = System.currentTimeMillis();
-                    //logger.debug("Execution time to process one category: " + (endTime - startTime));
-                    time_processOneCategory.addValue((endTime - startTime));
-                }
-
-                // Nulify yago_match because we will always try to match descriptions.
-                yago_match = null;
-                startTime = System.currentTimeMillis();
-                try {
-                    // If the description exist try to match it
-                    if (commonsMetadata.getDescription() != null && !commonsMetadata.getDescription().isEmpty()) {
-                        String strDescription = commonsMetadata.getDescription();
-
-                        // Translate for the first phrase
-                        ProcessBatchImageRunnable.TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
-                        String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
-
-                        // if the first phrase is short enough, match
-                        if (!firstPhraseEng.isEmpty() && firstPhraseEng.split("_").length < MAXTOKENSINAPHRASE && isValidNounGroup(firstPhraseEng)) {
-                            yago_match = matchNounPhraseTranslation2Yago(firstPhraseTranslation);
-                        }
-
-                        // Check and print
-                        if (yago_match != null) {
-                            // switch the needToMatchTitle flag
-                            needToMatchTitle = false;
-
-                            //prepare data to print to per_img txt
-                            if (!allYagoEntities.contains(yago_match)){
-                                // print to per_tag txt
-                                appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
-
-                                // add the categories to yago_match
-                                allYagoEntities.add(yago_match);
-                            }
-                        }
-                    }
-                } catch (Exception exception) {
-                    logger.error("Error when parsing file: " + original_title);
-                    logger.error("Error when parsing description: " + commonsMetadata.getDescription());
-                    logger.error(exception.getStackTrace());
-                }
-                endTime = System.currentTimeMillis();
-                //logger.debug("Execution time to process one description " + (endTime - startTime));
-                time_processOneDescription.addValue((endTime - startTime));
+                    //logger.debug("Execution time to process one description " + (endTime - startTime));
+                    time_processOneDescription.addValue((endTime - startTime));
 
 
-                // Start to match the title
-                try {
-                    // If no thing is matched so far, try to match the original_title
-                    if (yago_match == null && needToMatchTitle) {
-                        String proper_title = commonsMetadata.getTitle();
+                    // Start to match the title
+                    try {
+                        // If no thing is matched so far, try to match the original_title
+                        if (yago_match == null && needToMatchTitle) {
+                            String proper_title = commonsMetadata.getTitle();
 
-                        if (isNotBlacklist(proper_title) && proper_title.length() > MINCHARSINTITLE) {
-                            // Translate
-                            ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(proper_title);
+                            if (isNotBlacklist(proper_title) && proper_title.length() > MINCHARSINTITLE) {
+                                // Translate
+                                ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(proper_title);
 
-                            // Match normally
-                            // Using the title2class routine
-                            // pro e.g.:
-                            //      https://commons.wikimedia.org/wiki/File:ArtAndFeminism_2017-Puerto_Rico25.jpg
-                            //      https://commons.wikimedia.org/wiki/File:Young_swan_alone_115810909.jpg
-                            // con e.g.:
-                            yago_match = this.matchCategory.title2class(translationResults.getTranslatedText());
+                                // Match normally
+                                // Using the title2class routine
+                                // pro e.g.:
+                                //      https://commons.wikimedia.org/wiki/File:ArtAndFeminism_2017-Puerto_Rico25.jpg
+                                //      https://commons.wikimedia.org/wiki/File:Young_swan_alone_115810909.jpg
+                                // con e.g.:
+                                yago_match = this.matchCategory.title2class(translationResults.getTranslatedText());
 
-                            if (yago_match != null) {
-                                //prepare data to print to per_img txt
-                                if (!allYagoEntities.contains(yago_match)){
-                                    // print to per_tag txt
-                                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
+                                if (yago_match != null) {
+                                    //prepare data to print to per_img txt
+                                    if (!allYagoEntities.contains(yago_match)){
+                                        // print to per_tag txt
+                                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                                    // add the categories to yago_match
-                                    allYagoEntities.add(yago_match);
+                                        // add the categories to yago_match
+                                        allYagoEntities.add(yago_match);
+                                    }
                                 }
                             }
                         }
+                    } catch (Exception exception) {
+                        logger.error("Error when parsing file: " + original_title);
+                        logger.error("Error when parsing title: " + commonsMetadata.getTitle());
+                        logger.error(exception.getStackTrace());
                     }
-                } catch (Exception exception) {
-                    logger.error("Error when parsing file: " + original_title);
-                    logger.error("Error when parsing title: " + commonsMetadata.getTitle());
-                    logger.error(exception.getStackTrace());
+
+
+                    // Increment Flickr and Panoramio counter
+                    if (isFlickr) {incrementFlickrCounter();}
+                    if (isPanoramio) {incrementPanoramioCounter();}
+
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
+
+                } finally {
+                    ProcessBatchImageRunnable.incrementCompletedCounter();
                 }
-
-
-                // Increment Flickr and Panoramio counter
-                if (isFlickr) {incrementFlickrCounter();}
-                if (isPanoramio) {incrementPanoramioCounter();}
-
-                appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
-
             }
-
         } finally {
-            long endTime_img = System.currentTimeMillis();
-            logger.debug("Execution time to process one image " + (endTime_img - startTime_img));
-            time_oneImage.addValue((endTime_img - startTime_img));
-            ProcessBatchImageRunnable.incrementCompletedCounter();
+            long endTime_batch = System.currentTimeMillis();
+            time_oneImage.addValue((endTime_batch - startTime_batch));
+            logger.debug("Execution time to process one batch of images: " + (endTime_batch - startTime_batch));
         }
+
+
     }
 }

@@ -118,33 +118,39 @@ public class MediaWikiCommonsAPI {
                 // Initiate the COmmonsMetadata Objects
                 CommonsMetadata metadata = new CommonsMetadata();
 
-                // set pageid
-                String pageid = keys.next();
-                metadata.setPageID(Integer.parseInt(pageid));
+                try {
+                    // set pageid
+                    String pageid = keys.next();
+                    metadata.setPageID(Integer.parseInt(pageid));
 
-                // Set title
-                String title = pagesJSON.getJSONObject(pageid).getString("title").substring(5).replaceAll(" ", "_");
-                metadata.setTitle(title);
+                    // Set title
+                    String title = pagesJSON.getJSONObject(pageid).getString("title").substring(5).replaceAll(" ", "_");
+                    metadata.setTitle(title);
 
-                //Parse and add categories
-                JSONObject extmetadata = pagesJSON.getJSONObject(pageid).getJSONArray("imageinfo").getJSONObject(0).getJSONObject("extmetadata");
-                String[] raw_Categories = extmetadata.getJSONObject("Categories").getString("value").split("\\|");
-                ArrayList<String> strCategories = new ArrayList<>();
-                for (String currentCat: raw_Categories) {
-                    //preprocess the categories to conform to the standard in the matchingYago code
-                    String strCat = currentCat.replaceAll(" ", "_");
-                    strCategories.add(strCat);
+                    //Parse and add categories
+                    JSONObject extmetadata = pagesJSON.getJSONObject(pageid).getJSONArray("imageinfo").getJSONObject(0).getJSONObject("extmetadata");
+                    String[] raw_Categories = extmetadata.getJSONObject("Categories").getString("value").split("\\|");
+                    ArrayList<String> strCategories = new ArrayList<>();
+                    for (String currentCat: raw_Categories) {
+                        //preprocess the categories to conform to the standard in the matchingYago code
+                        String strCat = currentCat.replaceAll(" ", "_");
+                        strCategories.add(strCat);
+                    }
+                    metadata.setCategories(strCategories);
+
+                    //Parse and add description
+                    if (extmetadata.has("ImageDescription")){
+                        String description = extmetadata.getJSONObject("ImageDescription").getString("value");
+                        description = description.replaceAll("\\<.*?>","");     // Cheap way to remove html tags, more advanced option
+                        metadata.setDescription(description);
+                    } else {
+                        metadata.setDescription("");    //at least set something
+                    }
+                } catch (JSONException exception) {
+                    metadata = new CommonsMetadata();
+                    logger.error("failed to parse one metadata!");
                 }
-                metadata.setCategories(strCategories);
 
-                //Parse and add description
-                if (extmetadata.has("ImageDescription")){
-                    String description = extmetadata.getJSONObject("ImageDescription").getString("value");
-                    description = description.replaceAll("\\<.*?>","");     // Cheap way to remove html tags, more advanced option
-                    metadata.setDescription(description);
-                } else {
-                    metadata.setDescription("");    //at least set something
-                }
 
                 // Add to the return object
                 commonsMetadata_array.add(metadata);
