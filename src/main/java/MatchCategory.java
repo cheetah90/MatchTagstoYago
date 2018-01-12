@@ -102,6 +102,8 @@ public class MatchCategory {
             return directMatch("painting");
         } else if (category.contains("state_seals")) {
             return directMatch("united_states_state_seals");
+        } else if (category.contains("locator_map")) {
+            return directMatch("map");
         } else if (category.contains("demonstration")) {
             return directMatch("protest");
         } else if (category.startsWith("view_") || category.startsWith("views_")) {
@@ -183,7 +185,10 @@ public class MatchCategory {
 
     boolean isValidYagoItem(String yagoitem, String original_text) {
         return (yagoitem != null && !yagoitem.contains("wordnet_image")
-                && !yagoitem.contains("wikicat_Years") && !yagoitem.contains("wordnet_part")
+                && !yagoitem.contains("wordnet_location")
+                && !yagoitem.contains("wordnet_picture")
+                && !yagoitem.contains("wikicat_Years")
+                && !yagoitem.contains("wordnet_part")
                 && !isWrongAcronym(yagoitem, original_text));
     }
 

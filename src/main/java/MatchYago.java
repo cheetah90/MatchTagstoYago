@@ -124,7 +124,9 @@ public class MatchYago {
 
     private boolean isValidObject(String typeInfo) {
         return (typeInfo != null &&
-                !typeInfo.contains("wikicat_Abbreviations") && !typeInfo.contains("wordnet_first_name"));
+                !typeInfo.contains("wikicat_Abbreviations")
+                && !typeInfo.contains("wordnet_first_name")
+                && !typeInfo.contains("wordnet_surname"));
     }
 
     private void loadForeignWikiResultSet(ResultSet rs) throws SQLException {
