@@ -138,14 +138,7 @@ public class MatchCategory {
         return yagoMatch;
     }
 
-
-    /**
-     * First match the text without parenthesis and then the text inside the parenthesis
-     * e.g. https://commons.wikimedia.org/wiki/File:Milevsko_okres_P%C3%ADsek_(3.).jpg
-     * @param category
-     * @return
-     */
-    private String matchWithParenthesis(String category){
+    private String matchWithoutParenthesis(String category) {
         String yago_match = null;
 
         // remove the words in the parenthesis
@@ -155,17 +148,25 @@ public class MatchCategory {
         // try direct match
         yago_match = directMatch(current_categoryName);
 
+        return yago_match;
+    }
 
-        // Then match string without parenthesis
-        if (yago_match == null) {
-            // First match the string inside parenthesis
-            Matcher m = Pattern.compile("\\s*\\([^\\)]*\\)\\s*").matcher(category);
-            while (m.find()) {
-                // Get rid of the parenthesis
-                String content = m.group(0);
-                content = content.substring(2, content.length()-1);
-                yago_match = directMatch(content);
-            }
+    /**
+     * First match the text without parenthesis and then the text inside the parenthesis
+     * e.g. https://commons.wikimedia.org/wiki/File:Milevsko_okres_P%C3%ADsek_(3.).jpg
+     * @param category
+     * @return
+     */
+    private String matchInsideParenthesis(String category){
+        String yago_match = null;
+
+        // First match the string inside parenthesis
+        Matcher m = Pattern.compile("\\s*\\([^\\)]*\\)\\s*").matcher(category);
+        while (m.find()) {
+            // Get rid of the parenthesis
+            String content = m.group(0);
+            content = content.substring(2, content.length()-1);
+            yago_match = directMatch(content);
         }
 
         return yago_match;
@@ -272,7 +273,7 @@ public class MatchCategory {
 
         // deal with the parenthesis case
         if (original_categoryName.contains("(")) {
-            yagoitem = matchWithParenthesis(original_categoryName);
+            yagoitem = matchInsideParenthesis(original_categoryName);
             if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
         }
 
@@ -320,7 +321,7 @@ public class MatchCategory {
         yagoitem = returnHardcodedMapping(original_categoryName);
         if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
 
-        //Check if the category itself is a yago entity or class
+        // Check if the category itself is a yago entity or class
         yagoitem = directMatch(original_categoryName);
         if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
 
@@ -328,6 +329,20 @@ public class MatchCategory {
         yagoitem = matchQuotation(original_categoryName);
         if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
 
+        // If it contains parenthesis, first match things outside parenthesis
+        if (original_categoryName.contains("(")){
+            // Check if it contains parenthesis. If yes, match the string without parenthesis directly first
+            yagoitem = matchWithoutParenthesis(original_categoryName);
+            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+        }
+
+        // If it contains comma, match the first phrase
+        if (original_categoryName.contains(",")){
+            yagoitem = directMatch(original_categoryName.split(",")[0].replaceAll("_"," ").trim().replaceAll(" ", "_"));
+            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+        }
+
+        // Parse the noun group to match
         yagoitem = parseAndMatch(original_categoryName);
         if (yagoitem != null) {return yagoitem;}      // We checked for validity inside func:parseAndMatch
 
