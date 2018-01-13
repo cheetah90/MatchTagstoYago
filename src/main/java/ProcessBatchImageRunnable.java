@@ -208,7 +208,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         try {
             // Set up the Google Translate API connection
-            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/wikicommons-1c391c623d29.json"));
+            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
             this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
 
             // Set up the MediaWikiCommons API

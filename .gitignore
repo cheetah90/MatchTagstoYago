@@ -10,7 +10,7 @@ data/wordnetDomains
 *.log
 *.iml
 
-wikicommons-1c391c623d29.json
+google_api_key.json
 output_per_img.tsv
 output_per_tag.tsv
 config.properties
