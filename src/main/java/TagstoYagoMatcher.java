@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class MatchYago {
+public class TagstoYagoMatcher {
 
     public static Properties getPROPERTIES() {
         return PROPERTIES;
@@ -22,7 +22,7 @@ public class MatchYago {
 
     private static final int NUM_IMAGES_IN_BATCH = 50;
 
-    private static final Logger logger = LogManager.getLogger(MatchYago.class);
+    private static final Logger logger = LogManager.getLogger(TagstoYagoMatcher.class);
 
     private Connection db4SamplesConnection;
 
@@ -42,7 +42,7 @@ public class MatchYago {
 
     MatchCategory matchCategory;
 
-    public MatchYago(){
+    public TagstoYagoMatcher(){
 
         try {
             // necessary load for yago
@@ -442,8 +442,8 @@ public class MatchYago {
         }
 
 
-        MatchYago matchYago = new MatchYago();
-        matchYago.startWorking();
+        TagstoYagoMatcher tagstoYagoMatcher = new TagstoYagoMatcher();
+        tagstoYagoMatcher.startWorking();
 
     }
 }

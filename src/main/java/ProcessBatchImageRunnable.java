@@ -214,7 +214,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
             // Use local language detector
-            if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+            if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
                 //load the static language detector if not already:
                 if (languageDetector == null && textObjectFactory == null) {
                     List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
@@ -233,7 +233,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             logger.error(exception.getStackTrace());
         }
 
-        if (MatchYago.getPROPERTIES().getProperty("LoadYago2Memory").equals("true")) {
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("LoadYago2Memory").equals("true")) {
             this.matchCategory = new MatchCategory(preferredMeanings, nonConceptualCategories, yagoLowercase2Original, yagoOriginal2Type);
         } else {
             this.matchCategory = new MatchCategory(preferredMeanings, nonConceptualCategories, yagoConnection);
@@ -393,7 +393,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         String lang;
         // Use local language detector
-        if (MatchYago.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
             // Synchronized this block since it uses static methods and variables
             synchronized (translationLock) {
                 TextObject textObject = textObjectFactory.forText(strip_original);

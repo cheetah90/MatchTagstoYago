@@ -189,6 +189,7 @@ public class MatchCategory {
                 && !yagoitem.contains("wordnet_picture")
                 && !yagoitem.contains("wikicat_Years")
                 && !yagoitem.contains("wordnet_part")
+                && !yagoitem.contains("wordnet_detail")
                 && !isWrongAcronym(yagoitem, original_text));
     }
 
