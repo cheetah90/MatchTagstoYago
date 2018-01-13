@@ -170,7 +170,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MediaWikiCommonsAPI mediaWikiCommonsAPI;
 
-    private Translate googleTranslate;
+    private GoogleFreeTranslateAPI googleTranslate;
 
     private ArrayList<String> originalTitleArray;
 
@@ -209,7 +209,8 @@ public class ProcessBatchImageRunnable implements Runnable {
         try {
             // Set up the Google Translate API connection
             GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
-            this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+            //this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+            this.googleTranslate = new GoogleFreeTranslateAPI();
 
             // Set up the MediaWikiCommons API
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
@@ -429,23 +430,13 @@ public class ProcessBatchImageRunnable implements Runnable {
             }
 
         } else {
-            Detection detection = googleTranslate.detect(strip_original);
-            lang = detection.getLanguage();
+            lang = googleTranslate.detect(strip_original);
         }
 
 
-        try {
-            if (! lang.equals("en")) {
-                Translation translation = googleTranslate.translate(
-                        strip_original,
-                        Translate.TranslateOption.sourceLanguage(lang),
-                        Translate.TranslateOption.targetLanguage("en"));
-
-                englishText = translation.getTranslatedText();
-            }
-        } catch (TranslateException exception) {
-            logger.error(exception.getStackTrace());
-            englishText = "";
+        // Translate the text if not in English
+        if (! lang.equals("en")) {
+            englishText = googleTranslate.translate(strip_original, lang,"en");
         }
 
         return (new TranslationResults(original_text, englishText, lang));
@@ -526,19 +517,14 @@ public class ProcessBatchImageRunnable implements Runnable {
             }
 
         } else {
-            Detection detection = googleTranslate.detect(strip_original);
-            lang = detection.getLanguage();
+            lang = googleTranslate.detect(strip_original);
         }
 
 
-        try {
-            if (! lang.equals("en")) {
-                // If not English, simply assign empty string to englishText
-                englishText = "";
-            }
-        } catch (TranslateException exception) {
-            logger.error(exception.getStackTrace());
-            englishText = "";
+        // If it needs translate
+        if (! lang.equals("en")) {
+            // If not English, simply assign empty string to englishText
+            englishText = googleTranslate.translate(strip_original, lang, "en");
         }
 
         return (new TranslationResults(original_description, englishText, lang));
@@ -638,8 +624,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                             String strDescription = commonsMetadata.getDescription();
 
                             // Translate for the first phrase
-                            //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
-                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateDescription(strDescription));
+                            //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translate(strDescription));
+                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
                             String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
 
                             // if the first phrase is short enough, match
