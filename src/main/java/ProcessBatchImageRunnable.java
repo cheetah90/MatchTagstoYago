@@ -400,7 +400,7 @@ public class ProcessBatchImageRunnable implements Runnable {
         return langCode.equals("an") || langCode.equals("ast") || langCode.equals("br");
     }
 
-    private ProcessBatchImageRunnable.TranslationResults translateToEnglish(String original_text){
+    private TranslationResults translateToEnglish(String original_text){
         String strip_original = FactComponent.stripCat(original_text).trim();
         strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
         // Just use the first paragraph in case the text is a combination of English and foreign language
@@ -448,7 +448,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             englishText = "";
         }
 
-        return (new ProcessBatchImageRunnable.TranslationResults(original_text, englishText, lang));
+        return (new TranslationResults(original_text, englishText, lang));
     }
 
     private String matchNounPhraseTranslation2Yago (TranslationResults translationResults) {
@@ -495,6 +495,53 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         return new TranslationResults(firstPhraseOriginal, firstPhraseEng, translation.getLang());
 
+    }
+
+    private TranslationResults translateDescription(String original_description) {
+        String strip_original = FactComponent.stripCat(original_description).trim();
+        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
+        // Just use the first paragraph in case the text is a combination of English and foreign language
+        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
+        if (strip_original.contains("\n")) {
+            strip_original = strip_original.split("\n")[0].trim();
+        }
+        String englishText = original_description;
+
+        String lang;
+        // Use local language detector
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+            // Synchronized this block since it uses static methods and variables
+            synchronized (translationLock) {
+                TextObject textObject = textObjectFactory.forText(strip_original);
+                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+            }
+
+            // translate oc to fr
+            lang = lang.equals("oc")?"fr":lang;
+
+            // translate br to en
+            if (needHardCodetoEN(lang)) {
+                lang = "en";
+            }
+
+        } else {
+            Detection detection = googleTranslate.detect(strip_original);
+            lang = detection.getLanguage();
+        }
+
+
+        try {
+            if (! lang.equals("en")) {
+                // If not English, simply assign empty string to englishText
+                englishText = "";
+            }
+        } catch (TranslateException exception) {
+            logger.error(exception.getStackTrace());
+            englishText = "";
+        }
+
+        return (new TranslationResults(original_description, englishText, lang));
     }
 
 
@@ -591,7 +638,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                             String strDescription = commonsMetadata.getDescription();
 
                             // Translate for the first phrase
-                            ProcessBatchImageRunnable.TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
+                            //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
+                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateDescription(strDescription));
                             String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
 
                             // if the first phrase is short enough, match

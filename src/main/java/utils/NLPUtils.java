@@ -35,21 +35,24 @@ public class NLPUtils {
         return strDescriptions;
     }
 
-    public static String getFirstPhrase(String strDescriptions) {
-        String firstPhrase = getFirstSentence(strDescriptions);
-        firstPhrase = firstPhrase.split(",")[0];
-        firstPhrase = firstPhrase.split(";")[0];
-        if (firstPhrase.contains(":")) {
-            if (firstPhrase.endsWith(":")) {
-                // if it ends with ":", just strip it off
-                firstPhrase = firstPhrase.substring(0, firstPhrase.length()-1);
-            } else {
-                // If it has split
-                firstPhrase = firstPhrase.split(":")[1].trim();
+    public synchronized static String getFirstPhrase(String strDescriptions) {
+        if (strDescriptions!=null && !strDescriptions.equals("")){
+            String firstPhrase = getFirstSentence(strDescriptions);
+            firstPhrase = firstPhrase.split(",")[0];
+            firstPhrase = firstPhrase.split(";")[0];
+            if (firstPhrase.contains(":")) {
+                if (firstPhrase.endsWith(":")) {
+                    // if it ends with ":", just strip it off
+                    firstPhrase = firstPhrase.substring(0, firstPhrase.length()-1);
+                } else {
+                    // If it has split
+                    firstPhrase = firstPhrase.split(":")[1].trim();
+                }
             }
+
+            return firstPhrase;
         }
 
-
-        return firstPhrase;
+        return "";
     }
 }
