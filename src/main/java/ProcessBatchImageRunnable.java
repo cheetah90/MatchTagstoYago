@@ -187,7 +187,8 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
     private static final String[] BLACKLIST_STARTWITH_CATEGORIES = { "commons", "cc-", "pd_", "categories_", "items_with", "attribution_", "gfdl", "pd-", "file_", "files_",
-            "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl", "location_"};
+            "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl",
+            "location_", "executive_office_of_the_president"};
 
     private static final String[] BLACKLIST_CONTAINS_CATEGORIES ={"copyright", "license", "media_type", "file_format", "media_needing", "flickr", "self-published_work", "by_user",
             "_images", "_image", "panorami", "photos_by", "upload", "personality_rights_warning", "media_lacking",
