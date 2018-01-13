@@ -187,15 +187,15 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
     private static final String[] BLACKLIST_STARTWITH_CATEGORIES = { "commons", "cc-", "pd_", "categories_", "items_with", "attribution_", "gfdl", "pd-", "file_", "files_",
-            "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl"};
+            "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl", "location_"};
 
     private static final String[] BLACKLIST_CONTAINS_CATEGORIES ={"copyright", "license", "media_type", "file_format", "media_needing", "flickr", "self-published_work", "by_user",
             "_images", "_image", "panorami", "photos_by", "upload", "personality_rights_warning", "media_lacking",
             "media_supported_by", "media_by", "media_from", "media_with", "pages_with_map", "media_contributed_by", "user:",
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_",
-            "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_locations_", "photos,_created_by_", "project_",
+            "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_",
-            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "unidentified"
+            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "unidentified", "_applicable", "possible"
     };
 
     private static final String[] BLACKLIST_EQUAL_CATEGORIES={"fal", "attribution", "retouched_pictures", "vector_graphics", "cecill"
@@ -346,8 +346,26 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             //Split the category with (space)dash(space)
             if (current_category.contains("_-_")){
-                additional_category.addAll(Arrays.asList(current_category.split("_-_")));
+                List<String> splitByDash = Arrays.asList(current_category.split("_-_"));
+
+                // If too many dashes, just add the first part
+                if (splitByDash.size() > 2) {
+                    additional_category.add(splitByDash.get(0));
+                } else {
+                    // If the second part is too short, just add the first part
+                    if (splitByDash.get(1).length() < 3) {
+                        additional_category.add(splitByDash.get(0));
+                    } else {
+                        additional_category.addAll(splitByDash);
+                    }
+                }
+
                 continue;
+            }
+
+            // Deal with special case "Periodic table positions"
+            if (current_category.contains("Periodic_table_positions")) {
+                current_category = "Periodic_table";
             }
 
             // process this normal category

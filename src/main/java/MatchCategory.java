@@ -102,8 +102,10 @@ public class MatchCategory {
             return directMatch("painting");
         } else if (category.contains("state_seals")) {
             return directMatch("united_states_state_seals");
-        } else if (category.contains("locator_map")) {
+        } else if (category.contains("locator_map") || category.contains("map_locator")) {
             return directMatch("map");
+        } else if (category.startsWith("bust_") || category.startsWith("busts_") || category.endsWith("_bust") || category.endsWith("_busts") || category.contains("_bust_") || category.contains("_busts_")) {
+            return directMatch("bust_(sculpture)");
         } else if (category.contains("demonstration")) {
             return directMatch("protest");
         } else if (category.startsWith("view_") || category.startsWith("views_")) {
@@ -190,6 +192,13 @@ public class MatchCategory {
                 && !yagoitem.contains("wikicat_Years")
                 && !yagoitem.contains("wordnet_part")
                 && !yagoitem.contains("wordnet_detail")
+                && !yagoitem.contains("wordnet_second")
+                && !yagoitem.contains("wordnet_object")
+                && !yagoitem.contains("wordnet_position")
+                && !yagoitem.contains("wordnet_group")
+                && !yagoitem.contains("wordnet_section")
+                && !yagoitem.contains("wordnet_side")
+                && !yagoitem.contains("wordnet_example")
                 && !isWrongAcronym(yagoitem, original_text));
     }
 
@@ -213,8 +222,14 @@ public class MatchCategory {
             return (null);
         }
 
-        // extract the stemmed head
-        String lower_stemmedHead = PlingStemmer.stem(lower_category.head());
+        // extract the stemmed head, handle the special case
+        String lower_stemmedHead;
+        if (lower_category.head().equals("horses")) {
+            lower_stemmedHead = "horse";
+        } else {
+            lower_stemmedHead = PlingStemmer.stem(lower_category.head());
+        }
+
         boolean isStemmedHeadDifferent = ! lower_stemmedHead.equals(lower_category.head());
 
         // Exclude the bad guys
