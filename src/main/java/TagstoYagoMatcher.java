@@ -49,13 +49,7 @@ public class TagstoYagoMatcher {
             nativeYagoLoad();
 
             //Load properties file
-
             PROPERTIES.load(new InputStreamReader(new FileInputStream("./src/main/resources/config.properties"), "UTF8"));
-
-//            // Load the samples
-//            this.db4SamplesConnection = DriverManager.getConnection("jdbc:postgresql://localhost:"+PROPERTIES.getProperty("db4Samples.port")+"/"+PROPERTIES.getProperty("db4Samples.name"),
-//                    PROPERTIES.getProperty("db4Samples.username"), PROPERTIES.getProperty("db4Samples.password"));
-
 
             // Initialize hardcoded mappings and set the static variable
             ProcessBatchImageRunnable.setPreferredMeanings(WordnetExtractor.PREFMEANINGS.factCollection().getPreferredMeanings());
@@ -426,8 +420,6 @@ public class TagstoYagoMatcher {
 
 
     public static void main(String[] args){
-        //System.setProperty("log4j.configurationFile","./src/main/resources/log4j2.xml");
-
         //Call the initializer so that Themes.name2theme are filled.
         new PatternHardExtractor();
         new WordnetExtractor();

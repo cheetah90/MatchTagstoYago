@@ -201,6 +201,7 @@ public class MatchCategory {
                 && !yagoitem.contains("wordnet_example")
                 && !yagoitem.contains("wikicat_Pictures")
                 && !yagoitem.contains("wikicat_Objects")
+                && !yagoitem.contains("wikicat_photograph")
                 && !isWrongAcronym(yagoitem, original_text));
     }
 
