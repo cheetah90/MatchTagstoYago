@@ -358,6 +358,7 @@ public class TagstoYagoMatcher {
         logger.info("# of images failured on MediaWikiAPI: " + ProcessBatchImageRunnable.getFailedImageCounter());
         logger.info("# of non image files: " + ProcessBatchImageRunnable.getNonPhotoCounter());
         logger.info("# of valid images: " + ProcessBatchImageRunnable.getValidPhotoCounter());
+        logger.info("# of characters to translate: " + ProcessBatchImageRunnable.ChartoTranslateCounter);
 
         // profile the execution time
         logger.info("The avg execution time for MediaWikipediaAPI() is: " + ProcessBatchImageRunnable.time_mediaWikipeida.getMean());

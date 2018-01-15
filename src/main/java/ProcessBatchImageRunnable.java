@@ -79,6 +79,8 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private synchronized static void incrementValidPhotoCounter() {validPhotoCounter++;}
 
+    private synchronized static void addToChartoTranslateCounter(long numOfCharToAdd) {ChartoTranslateCounter += numOfCharToAdd;}
+
     public static int getFlickrCounter(){
         return FlickrCounter;
     }
@@ -120,6 +122,8 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static int FlickrCounter = 0;
 
     private static int PanoramioCounter = 0;
+
+    static long ChartoTranslateCounter = 0;
 
     private static LanguageDetector languageDetector;
 
@@ -436,6 +440,8 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         // Translate the text if not in English
         if (! lang.equals("en")) {
+            addToChartoTranslateCounter(strip_original.length());
+
             englishText = googleTranslate.translate(strip_original, lang,"en");
         }
 

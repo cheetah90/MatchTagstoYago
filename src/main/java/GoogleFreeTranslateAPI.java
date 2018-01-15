@@ -55,19 +55,6 @@ public class GoogleFreeTranslateAPI {
 
         } catch (IOException exception) {
             logger.error("Error: free Google API failed on requesting: " + requestURL );
-
-            if ( num_continuous_failures < 3){
-                num_continuous_failures++;
-            } else {
-                logger.info("Free Google API detected us! Let's cool down for 10 secs!");
-                num_continuous_failures = 0;
-                // The MediaWiki server might have detected us! Let's sleep for a while
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException interruptedEx) {
-                    interruptedEx.printStackTrace();
-                }
-            }
         }
 
         return "";
