@@ -421,67 +421,71 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         String lang;
 
-        try {
-            // Use local language detector
-            if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-                // Synchronized this block since it uses static methods and variables
-                synchronized (translationLock) {
-                    TextObject textObject = textObjectFactory.forText(strip_original);
-                    Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-                    lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
-                }
 
-                // translate oc to fr
-                lang = lang.equals("oc")?"fr":lang;
-
-                // translate br to en
-                if (needHardCodetoEN(lang)) {
-                    lang = "en";
-                }
-
-            } else {
-                Detection langDetection = googleTranslate.detect(strip_original);
-                lang = langDetection.getLanguage();
+        // Use local language detector
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+            // Synchronized this block since it uses static methods and variables
+            synchronized (translationLock) {
+                TextObject textObject = textObjectFactory.forText(strip_original);
+                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
             }
 
+            // translate oc to fr
+            lang = lang.equals("oc")?"fr":lang;
 
-            // Translate the text if not in English
-            if (! lang.equals("en")) {
+            // translate br to en
+            if (needHardCodetoEN(lang)) {
+                lang = "en";
+            }
 
-                String translationCachedResult;
+        } else {
+            try {
+                Detection langDetection = googleTranslate.detect(strip_original);
+                lang = langDetection.getLanguage();
+            } catch (TranslateException exception) {
+                lang = "en";
+            }
+            
+        }
 
-                // Synchronized the get operation
-                synchronized (translationLock) {
-                    translationCachedResult = translationCache.get(strip_original);
-                }
 
-                // If the orginal text has been cached
-                if (translationCachedResult != null) {
-                    englishText = translationCachedResult;
-                } else {
+        // Translate the text if not in English
+        if (! lang.equals("en")) {
+
+            String translationCachedResult;
+
+            // Synchronized the get operation
+            synchronized (translationLock) {
+                translationCachedResult = translationCache.get(strip_original);
+            }
+
+            // If the orginal text has been cached
+            if (translationCachedResult != null) {
+                englishText = translationCachedResult;
+            } else {
+                try {
                     Translation translation =
                             googleTranslate.translate(
                                     strip_original,
                                     Translate.TranslateOption.sourceLanguage(lang),
                                     Translate.TranslateOption.targetLanguage("en"));
-
-
                     englishText = translation.getTranslatedText();
-                    //englishText = googleTranslate.translate(strip_original, lang,"en");
-
-                    // Synchronize the put operation
-                    synchronized (translationLock) {
-                        translationCache.put(strip_original, englishText);
-                    }
-
-                    // Add this to
-                    addToChartoTranslateCounter(strip_original.length());
+                } catch (TranslateException exception) {
+                    logger.error("Google Transalation API unavailable");
                 }
 
+                //englishText = googleTranslate.translate(strip_original, lang,"en");
+
+                // Synchronize the put operation
+                synchronized (translationLock) {
+                    translationCache.put(strip_original, englishText);
+                }
+
+                // Add this to
+                addToChartoTranslateCounter(strip_original.length());
             }
-        } catch (TranslateException exception) {
-            logger.error("Error: failed to translate)");
-            lang = "en";
+
         }
 
 
