@@ -144,6 +144,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     static final SummaryStatistics time_oneImage = new SynchronizedSummaryStatistics();
 
+    static final HashMap<String, String> translationCache = new HashMap<>();
+
+    static final Object translationCacheLock = new Object();
+
     /**
      * Finish static methods and variables
      */
@@ -174,7 +178,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MediaWikiCommonsAPI mediaWikiCommonsAPI;
 
-    private GoogleFreeTranslateAPI googleTranslate;
+    private Translate googleTranslate;
 
     private ArrayList<String> originalTitleArray;
 
@@ -213,8 +217,8 @@ public class ProcessBatchImageRunnable implements Runnable {
         try {
             // Set up the Google Translate API connection
             GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
-            //this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
-            this.googleTranslate = new GoogleFreeTranslateAPI();
+            this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+            //this.googleTranslate = new GoogleFreeTranslateAPI();
 
             // Set up the MediaWikiCommons API
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
@@ -416,34 +420,70 @@ public class ProcessBatchImageRunnable implements Runnable {
         String englishText = original_text;
 
         String lang;
-        // Use local language detector
-        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-            // Synchronized this block since it uses static methods and variables
-            synchronized (translationLock) {
-                TextObject textObject = textObjectFactory.forText(strip_original);
-                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+
+        try {
+            // Use local language detector
+            if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+                // Synchronized this block since it uses static methods and variables
+                synchronized (translationLock) {
+                    TextObject textObject = textObjectFactory.forText(strip_original);
+                    Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                    lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+                }
+
+                // translate oc to fr
+                lang = lang.equals("oc")?"fr":lang;
+
+                // translate br to en
+                if (needHardCodetoEN(lang)) {
+                    lang = "en";
+                }
+
+            } else {
+                Detection langDetection = googleTranslate.detect(strip_original);
+                lang = langDetection.getLanguage();
             }
 
-            // translate oc to fr
-            lang = lang.equals("oc")?"fr":lang;
 
-            // translate br to en
-            if (needHardCodetoEN(lang)) {
-                lang = "en";
+            // Translate the text if not in English
+            if (! lang.equals("en")) {
+
+                String translationCachedResult;
+
+                // Synchronized the get operation
+                synchronized (translationLock) {
+                    translationCachedResult = translationCache.get(strip_original);
+                }
+
+                // If the orginal text has been cached
+                if (translationCachedResult != null) {
+                    englishText = translationCachedResult;
+                } else {
+                    Translation translation =
+                            googleTranslate.translate(
+                                    strip_original,
+                                    Translate.TranslateOption.sourceLanguage(lang),
+                                    Translate.TranslateOption.targetLanguage("en"));
+
+
+                    englishText = translation.getTranslatedText();
+                    //englishText = googleTranslate.translate(strip_original, lang,"en");
+
+                    // Synchronize the put operation
+                    synchronized (translationLock) {
+                        translationCache.put(strip_original, englishText);
+                    }
+
+                    // Add this to
+                    addToChartoTranslateCounter(strip_original.length());
+                }
+
             }
-
-        } else {
-            lang = googleTranslate.detect(strip_original);
+        } catch (TranslateException exception) {
+            logger.error("Error: failed to translate)");
+            lang = "en";
         }
 
-
-        // Translate the text if not in English
-        if (! lang.equals("en")) {
-            addToChartoTranslateCounter(strip_original.length());
-
-            englishText = googleTranslate.translate(strip_original, lang,"en");
-        }
 
         return (new TranslationResults(original_text, englishText, lang));
     }
@@ -494,47 +534,47 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     }
 
-    private TranslationResults translateDescription(String original_description) {
-        String strip_original = FactComponent.stripCat(original_description).trim();
-        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
-        // Just use the first paragraph in case the text is a combination of English and foreign language
-        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
-        if (strip_original.contains("\n")) {
-            strip_original = strip_original.split("\n")[0].trim();
-        }
-        String englishText = original_description;
-
-        String lang;
-        // Use local language detector
-        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-            // Synchronized this block since it uses static methods and variables
-            synchronized (translationLock) {
-                TextObject textObject = textObjectFactory.forText(strip_original);
-                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
-            }
-
-            // translate oc to fr
-            lang = lang.equals("oc")?"fr":lang;
-
-            // translate br to en
-            if (needHardCodetoEN(lang)) {
-                lang = "en";
-            }
-
-        } else {
-            lang = googleTranslate.detect(strip_original);
-        }
-
-
-        // If it needs translate
-        if (! lang.equals("en")) {
-            // If not English, simply assign empty string to englishText
-            englishText = googleTranslate.translate(strip_original, lang, "en");
-        }
-
-        return (new TranslationResults(original_description, englishText, lang));
-    }
+//    private TranslationResults translateDescription(String original_description) {
+//        String strip_original = FactComponent.stripCat(original_description).trim();
+//        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
+//        // Just use the first paragraph in case the text is a combination of English and foreign language
+//        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
+//        if (strip_original.contains("\n")) {
+//            strip_original = strip_original.split("\n")[0].trim();
+//        }
+//        String englishText = original_description;
+//
+//        String lang;
+//        // Use local language detector
+//        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+//            // Synchronized this block since it uses static methods and variables
+//            synchronized (translationLock) {
+//                TextObject textObject = textObjectFactory.forText(strip_original);
+//                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+//                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+//            }
+//
+//            // translate oc to fr
+//            lang = lang.equals("oc")?"fr":lang;
+//
+//            // translate br to en
+//            if (needHardCodetoEN(lang)) {
+//                lang = "en";
+//            }
+//
+//        } else {
+//            lang = googleTranslate.detect(strip_original);
+//        }
+//
+//
+//        // If it needs translate
+//        if (! lang.equals("en")) {
+//            // If not English, simply assign empty string to englishText
+//            englishText = googleTranslate.translate(strip_original, lang, "en");
+//        }
+//
+//        return (new TranslationResults(original_description, englishText, lang));
+//    }
 
 
     public void run() {
