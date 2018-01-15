@@ -446,7 +446,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             } catch (TranslateException exception) {
                 lang = "en";
             }
-            
+
         }
 
 
@@ -531,54 +531,52 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
     private TranslationResults getFirstPhraseTranslationResults(TranslationResults translation) {
-        String firstPhraseEng = NLPUtils.getFirstPhrase(translation.getTranslatedText()).trim().replaceAll(" ","_");
+        String firstPhraseEng;
+
+        if (translation.getTranslatedText().equals("")) {
+            firstPhraseEng = "";
+        } else {
+            firstPhraseEng = NLPUtils.getFirstPhrase(translation.getTranslatedText()).trim().replaceAll(" ","_");
+        }
+
         String firstPhraseOriginal = NLPUtils.getFirstPhrase(translation.getOriginalText()).trim().replaceAll(" ", "_");
 
         return new TranslationResults(firstPhraseOriginal, firstPhraseEng, translation.getLang());
 
     }
 
-//    private TranslationResults translateDescription(String original_description) {
-//        String strip_original = FactComponent.stripCat(original_description).trim();
-//        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
-//        // Just use the first paragraph in case the text is a combination of English and foreign language
-//        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
-//        if (strip_original.contains("\n")) {
-//            strip_original = strip_original.split("\n")[0].trim();
-//        }
-//        String englishText = original_description;
-//
-//        String lang;
-//        // Use local language detector
-//        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-//            // Synchronized this block since it uses static methods and variables
-//            synchronized (translationLock) {
-//                TextObject textObject = textObjectFactory.forText(strip_original);
-//                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-//                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
-//            }
-//
-//            // translate oc to fr
-//            lang = lang.equals("oc")?"fr":lang;
-//
-//            // translate br to en
-//            if (needHardCodetoEN(lang)) {
-//                lang = "en";
-//            }
-//
-//        } else {
-//            lang = googleTranslate.detect(strip_original);
-//        }
-//
-//
-//        // If it needs translate
-//        if (! lang.equals("en")) {
-//            // If not English, simply assign empty string to englishText
-//            englishText = googleTranslate.translate(strip_original, lang, "en");
-//        }
-//
-//        return (new TranslationResults(original_description, englishText, lang));
-//    }
+    private TranslationResults translateDescription(String original_description) {
+        String strip_original = FactComponent.stripCat(original_description).trim();
+        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
+        // Just use the first paragraph in case the text is a combination of English and foreign language
+        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
+        if (strip_original.contains("\n")) {
+            strip_original = strip_original.split("\n")[0].trim();
+        }
+
+        String lang;
+        // Synchronized this block since it uses static methods and variables
+        synchronized (translationLock) {
+            TextObject textObject = textObjectFactory.forText(strip_original);
+            Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+            lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+        }
+
+        // translate oc to fr
+        lang = lang.equals("oc")?"fr":lang;
+
+        // translate br to en
+        if (needHardCodetoEN(lang)) {
+            lang = "en";
+        }
+
+        String englishText = strip_original;
+        if (!lang.equals("en")) {
+            englishText = "";
+        }
+
+        return (new TranslationResults(original_description, englishText, "en"));
+    }
 
 
     public void run() {
@@ -675,7 +673,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                             // Translate for the first phrase
                             //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translate(strDescription));
-                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateToEnglish(strDescription));
+                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateDescription(strDescription));
                             String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
 
                             // if the first phrase is short enough, match
