@@ -199,6 +199,7 @@ public class MatchCategory {
                 && !yagoitem.contains("wordnet_section")
                 && !yagoitem.contains("wordnet_side")
                 && !yagoitem.contains("wordnet_example")
+                && !yagoitem.contains("wordnet_sent")
                 && !yagoitem.contains("wikicat_Pictures")
                 && !yagoitem.contains("wikicat_Objects")
                 && !yagoitem.contains("wikicat_photograph")
