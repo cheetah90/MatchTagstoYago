@@ -64,6 +64,8 @@ public class MicrosoftTranslatorAPI {
     public String translate(String textInOriginalLang, String sourceLang, String targetLang) {
         String requestURL = null;
 
+
+        String strResult;
         try {
             requestURL = baseURL + "Translate?from=" + sourceLang + "&to=" + targetLang + "&text=" + URLEncoder.encode(textInOriginalLang, charset);
 
@@ -72,16 +74,14 @@ public class MicrosoftTranslatorAPI {
             String sentinel = "<string xmlns=\"http://schemas.microsoft.com/2003/10/Serialization/\">";
             int startPosition = sentinel.length();
             int endPosition = strResponse.indexOf("</string>");
-            String strResult = strResponse.substring(startPosition, endPosition);
-            return strResult;
-
+            strResult = strResponse.substring(startPosition, endPosition);
 
         } catch (IOException exception) {
             logger.error("Error: Microsoft Translator API failed on requesting: " + requestURL );
-            exception.printStackTrace();
+            strResult = textInOriginalLang;
         }
 
-        return "";
+        return strResult;
     }
 
     public static void main(String[] args){

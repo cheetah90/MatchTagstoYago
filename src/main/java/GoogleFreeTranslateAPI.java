@@ -40,22 +40,25 @@ public class GoogleFreeTranslateAPI {
     public String translate(String textInOriginalLang, String sourceLang, String targetLang) {
         String requestURL = null;
 
+        String strResult;
         try {
             requestURL = baseURL + sourceLang + "&tl=" + targetLang + "&dt=t&q=" + URLEncoder.encode(textInOriginalLang, charset);
+
+
 
             // Parse the response
             String strResponse = getResponse(requestURL);
             int startPosition = 4;
             int endPosition = strResponse.indexOf(textInOriginalLang);
-            String strResult = strResponse.substring(startPosition, endPosition-3);
-            return strResult;
+            strResult = strResponse.substring(startPosition, endPosition-3);
 
 
         } catch (IOException exception) {
             logger.error("Error: free Google API failed on requesting: " + requestURL );
+            strResult = textInOriginalLang;
         }
 
-        return "";
+        return strResult;
     }
 
     public String detect(String textInOriginalLang) {
