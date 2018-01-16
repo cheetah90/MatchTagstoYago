@@ -14,15 +14,11 @@ public class MicrosoftTranslatorAPI {
 
     private String charset = "UTF-8";
 
-    private static final Object lockFailureCounter = new Object();
-
     MicrosoftTranslatorAPI(){ }
 
     public String getResponse(String requestURL) throws IOException {
-        //Load properties file
-        Properties properties = new Properties();
-        properties.load(new InputStreamReader(new FileInputStream("./src/main/resources/config.properties"), "UTF8"));
-        String api_key = properties.getProperty("miscrosoft.api");
+        //Get API key
+        String api_key = TagstoYagoMatcher.getPROPERTIES().getProperty("MiscrosoftAPI.key");
 
 
         //Send HTTP Request
@@ -90,7 +86,7 @@ public class MicrosoftTranslatorAPI {
         MicrosoftTranslatorAPI microsoftTranslatorAPI = new MicrosoftTranslatorAPI();
 
         String translationResult = microsoftTranslatorAPI.translate("我是中文",
-                "zh", "en");
+                "", "en");
 
         String detectionResult = microsoftTranslatorAPI.detect("我是中文");
 

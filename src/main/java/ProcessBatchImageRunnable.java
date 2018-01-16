@@ -455,7 +455,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         // Translate the text if not in English
         if (! lang.equals("en")) {
-
             String translationCachedResult;
 
             // Synchronized the get operation
@@ -467,25 +466,41 @@ public class ProcessBatchImageRunnable implements Runnable {
             if (translationCachedResult != null) {
                 englishText = translationCachedResult;
             } else {
+                // If not cached, use the translation api
 
-                // Use Google Translator
-//                try {
-//                    Translation translation =
-//                            googleTranslate.translate(
-//                                    strip_original,
-//                                    Translate.TranslateOption.sourceLanguage(lang),
-//                                    Translate.TranslateOption.targetLanguage("en"));
-//                    englishText = translation.getTranslatedText();
-//                } catch (TranslateException exception) {
-//                    logger.error("Google Transalation API unavailable");
-//                }
+                switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
+                    case "microsoft": {
+                        // Use Microsoft Translator
+                        englishText = translateAPI.translate(strip_original, "", "en");
+                        // Update the lang based on the translation result
+                        if (englishText.equals(strip_original)) {
+                            lang = "en";
+                        }
 
-                // Use free Google Translator
-                //englishText = googleTranslate.translate(strip_original, lang,"en");
+                        break;
+                    }
 
-                // Use Microsoft Translator
-                englishText = translateAPI.translate(strip_original, lang, "en");
+                    case "google_free": {
+                        // Use free Google Translator
+                        englishText = translateAPI.translate(strip_original, lang,"en");
+                        break;
+                    }
 
+                    case "google_paid": {
+                        // Use Google Translator
+                        try {
+//                        Translation translation =
+//                                translateAPI.translate(
+//                                        strip_original,
+//                                        Translate.TranslateOption.sourceLanguage(lang),
+//                                        Translate.TranslateOption.targetLanguage("en"));
+//                        englishText = translation.getTranslatedText();
+                        } catch (TranslateException exception) {
+                            logger.error("Google Transalation API unavailable");
+                        }
+                        break;
+                    }
+                }
 
                 // Synchronize the put operation
                 synchronized (translationLock) {
