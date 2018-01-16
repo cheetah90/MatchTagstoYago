@@ -55,6 +55,7 @@ public class MicrosoftTranslatorAPI {
 
         } catch (IOException exception) {
             logger.error("Error: Microsoft Translator API failed on requesting: " + requestURL );
+            exception.printStackTrace();
         }
 
         return "";
@@ -77,6 +78,7 @@ public class MicrosoftTranslatorAPI {
 
         } catch (IOException exception) {
             logger.error("Error: Microsoft Translator API failed on requesting: " + requestURL );
+            exception.printStackTrace();
         }
 
         return "";
