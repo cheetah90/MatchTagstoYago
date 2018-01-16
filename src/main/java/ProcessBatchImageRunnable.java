@@ -178,7 +178,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MediaWikiCommonsAPI mediaWikiCommonsAPI;
 
-    private Translate googleTranslate;
+    private MicrosoftTranslatorAPI translateAPI;
 
     private ArrayList<String> originalTitleArray;
 
@@ -216,9 +216,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         try {
             // Set up the Google Translate API connection
-            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
-            this.googleTranslate = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
+            //GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
+            //this.translateAPI = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
             //this.googleTranslate = new GoogleFreeTranslateAPI();
+            translateAPI = new MicrosoftTranslatorAPI();
 
             // Set up the MediaWikiCommons API
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
@@ -441,8 +442,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         } else {
             try {
-                Detection langDetection = googleTranslate.detect(strip_original);
-                lang = langDetection.getLanguage();
+                lang = translateAPI.detect(strip_original);
+
+//                Detection langDetection = translateAPI.detect(strip_original);
+//                lang = langDetection.getLanguage();
             } catch (TranslateException exception) {
                 lang = "en";
             }
@@ -464,18 +467,25 @@ public class ProcessBatchImageRunnable implements Runnable {
             if (translationCachedResult != null) {
                 englishText = translationCachedResult;
             } else {
-                try {
-                    Translation translation =
-                            googleTranslate.translate(
-                                    strip_original,
-                                    Translate.TranslateOption.sourceLanguage(lang),
-                                    Translate.TranslateOption.targetLanguage("en"));
-                    englishText = translation.getTranslatedText();
-                } catch (TranslateException exception) {
-                    logger.error("Google Transalation API unavailable");
-                }
 
+                // Use Google Translator
+//                try {
+//                    Translation translation =
+//                            googleTranslate.translate(
+//                                    strip_original,
+//                                    Translate.TranslateOption.sourceLanguage(lang),
+//                                    Translate.TranslateOption.targetLanguage("en"));
+//                    englishText = translation.getTranslatedText();
+//                } catch (TranslateException exception) {
+//                    logger.error("Google Transalation API unavailable");
+//                }
+
+                // Use free Google Translator
                 //englishText = googleTranslate.translate(strip_original, lang,"en");
+
+                // Use Microsoft Translator
+                englishText = translateAPI.translate(strip_original, lang, "en");
+
 
                 // Synchronize the put operation
                 synchronized (translationLock) {
