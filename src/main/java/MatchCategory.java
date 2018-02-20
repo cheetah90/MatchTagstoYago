@@ -356,8 +356,10 @@ public class MatchCategory {
         if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
 
         // Check if it contains quotations. If yes, match the substring in the quotation
-        yagoitem = matchQuotation(original_categoryName);
-        if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+        if (original_categoryName.contains("\'")||original_categoryName.contains("\"")) {
+            yagoitem = matchQuotation(original_categoryName);
+            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+        }
 
         // If it contains parenthesis, first match things outside parenthesis
         if (original_categoryName.contains("(")){
@@ -368,7 +370,11 @@ public class MatchCategory {
 
         // If it contains comma, match the first phrase
         if (original_categoryName.contains(",")){
-            yagoitem = parseAndMatch(original_categoryName.split(",")[0].replaceAll("_"," ").trim().replaceAll(" ", "_"));
+            String firstPhrase = original_categoryName.split(",")[0].replaceAll("_"," ").trim().replaceAll(" ", "_");
+            yagoitem = directMatch(firstPhrase);
+            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+
+            yagoitem = parseAndMatch(firstPhrase);
             if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
         }
 
