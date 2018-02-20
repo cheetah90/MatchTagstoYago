@@ -593,8 +593,10 @@ public class ProcessBatchImageRunnable implements Runnable {
         }
 
         String englishText = strip_original;
+
+        //DEBUG: for NonEnglish one, still use the English text
         if (!lang.equals("en")) {
-            englishText = "";
+            englishText = strip_original;
         }
 
         return (new TranslationResults(original_description, englishText, "en"));
