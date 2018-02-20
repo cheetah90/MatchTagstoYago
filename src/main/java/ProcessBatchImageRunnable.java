@@ -412,16 +412,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private TranslationResults translateToEnglish(String original_text){
         String strip_original = FactComponent.stripCat(original_text).trim();
-        strip_original = strip_original.startsWith("\n")?strip_original.substring("\n".length()):strip_original;
-        // Just use the first paragraph in case the text is a combination of English and foreign language
-        // e.g.  description in https://commons.wikimedia.org/wiki/File:Matereialseilbahn_Dotternhausen_22022014.JPG
-        if (strip_original.contains("\n")) {
-            strip_original = strip_original.split("\n")[0].trim();
-        }
+
         String englishText = original_text;
 
         String lang;
-
 
         // Use local language detector
         if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
@@ -455,6 +449,9 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         // Translate the text if not in English
         if (! lang.equals("en")) {
+            englishText = "";
+            //To use translation API,
+            /*
             String translationCachedResult;
 
             // Synchronized the get operation
@@ -510,6 +507,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                 // Add this to
                 addToChartoTranslateCounter(strip_original.length());
             }
+            */
 
         }
 

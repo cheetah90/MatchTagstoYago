@@ -47,13 +47,18 @@ public class MatchCategory {
         text = text.toLowerCase();
 
         // replace all spaces
-        if (text.contains(" ")){
-            text = text.replaceAll(" ", "_");
+        if (text.contains("_")){
+            text = text.replaceAll("_", " ");
         }
 
         //First match to wordnet
         String match = this.preferredMeanings.get(text);
         if (match != null) return (match);
+
+        // replace all spaces
+        if (text.contains(" ")){
+            text = text.replaceAll(" ", "_");
+        }
 
         //If not found, then match to YagoTyapes and YagoTaxonomy
         match = queryYagoDatabase(text);
