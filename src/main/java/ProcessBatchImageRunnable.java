@@ -415,6 +415,9 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         String englishText = original_text;
 
+        //DEBUG: delete this line
+        String lang = "en";
+        /*
         String lang;
 
         // Use local language detector
@@ -446,12 +449,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         }
 
-
         // Translate the text if not in English
         if (! lang.equals("en")) {
-            englishText = "";
-            //To use translation API,
-            /*
+
+
             String translationCachedResult;
 
             // Synchronized the get operation
@@ -507,10 +508,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                 // Add this to
                 addToChartoTranslateCounter(strip_original.length());
             }
-            */
-
         }
-
+        */
 
         return (new TranslationResults(original_text, englishText, lang));
     }
