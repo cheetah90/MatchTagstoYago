@@ -370,11 +370,11 @@ public class MatchCategory {
         if (original_categoryName.contains(",")){
             yagoitem = parseAndMatch(original_categoryName.split(",")[0].replaceAll("_"," ").trim().replaceAll(" ", "_"));
             if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
-        } else {
-            // Parse the noun group to match
-            yagoitem = parseAndMatch(original_categoryName);
-            if (yagoitem != null) {return yagoitem;}      // We checked for validity inside func:parseAndMatch
         }
+
+        // Parse the noun group to match
+        yagoitem = parseAndMatch(original_categoryName);
+        if (yagoitem != null) {return yagoitem;}      // We checked for validity inside func:parseAndMatch
 
         return null;
 
