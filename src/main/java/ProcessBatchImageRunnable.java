@@ -204,7 +204,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_",
-            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "unidentified", "_applicable", "possible"
+            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "_applicable", "possible"
     };
 
     private static final String[] BLACKLIST_EQUAL_CATEGORIES={"fal", "attribution", "retouched_pictures", "vector_graphics", "cecill"
