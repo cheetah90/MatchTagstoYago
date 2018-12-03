@@ -86,26 +86,6 @@ public class TagstoYagoMatcher {
 
     }
 
-    /**
-     * @deprecated
-     * read all page title from sql database. Should use
-     * @return
-     * @throws SQLException
-     */
-    private List<String >queryAllPageTitles() throws SQLException{
-        ArrayList<String> pageTitles = new ArrayList<>();
-
-        String query = PROPERTIES.getProperty("query4Samples");
-        Statement stmt = db4SamplesConnection.createStatement();
-        ResultSet rs_title = stmt.executeQuery(query);
-
-        while (rs_title.next()){
-            pageTitles.add(rs_title.getString("file_title"));
-        }
-
-        return pageTitles;
-    }
-
     private void clearOutputfile(String outputFileName){
         try {
             Writer output = new BufferedWriter(new FileWriter(outputFileName, false));

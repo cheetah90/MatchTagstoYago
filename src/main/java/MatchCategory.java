@@ -149,9 +149,18 @@ public class MatchCategory {
 
     private String matchWithoutParenthesis(String category) {
         String yago_match = null;
+        String current_categoryName = null;
 
-        // remove the words in the parenthesis
-        String current_categoryName = category.replaceAll("\\s*\\([^\\)]*\\)\\s*", " ");;
+        if (category.contains("(") && !category.contains(")")){
+            // if for some reason, the category is malformed, e.g. kc-130_hercules_(united_states_navy
+            // search for the "(" and remove everything hereafter
+            current_categoryName = category.split("\\(")[0];
+
+        } else {
+            // remove the words in the parenthesis
+            current_categoryName = category.replaceAll("\\s*\\([^\\)]*\\)\\s*", " ");
+        }
+
         // fix the tailing "_"
         current_categoryName = current_categoryName.replaceAll("_", " ").trim().replaceAll(" ", "_");
         // try direct match
