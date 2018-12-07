@@ -674,13 +674,13 @@ public class ProcessBatchImageRunnable implements Runnable {
                                     needToMatchTitle = false;
 
                                     //prepare data to print to per_img txt
+                                    allMatchingResults.add(yago_match);
                                     if (!allYagoEntities.contains(yago_match)){
                                         // print to per_tag txt
                                         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
                                         // add the categories to yago_match
                                         allYagoEntities.add(yago_match);
-                                        allMatchingResults.add(yago_match);
                                     }
                                 } else {
                                     allMatchingResults.add("<>");
