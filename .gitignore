@@ -13,6 +13,7 @@ data/wordnetDomains
 google_api_key.json
 output_per_img.tsv
 output_per_tag.tsv
+output_groundtruth.tsv
 config.properties
 log4j2.xml
 

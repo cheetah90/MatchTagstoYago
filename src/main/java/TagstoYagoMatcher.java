@@ -276,6 +276,7 @@ public class TagstoYagoMatcher {
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
+        clearOutputfile("./output_groundtruth.tsv");
 
         // Create ThreadPool
         ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(PROPERTIES.getProperty("maxThreadPool")));

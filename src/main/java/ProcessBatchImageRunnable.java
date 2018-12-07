@@ -189,7 +189,7 @@ public class ProcessBatchImageRunnable implements Runnable {
     private MatchCategory matchCategory;
 
 
-    private static boolean isNotPhoto(String fileName) {
+    private static boolean isNotImages(String fileName) {
         return (fileName.contains(".webm") || fileName.contains(".ogg") || fileName.contains(".mp3") ||
                 fileName.contains(".midi") || fileName.contains(".wave") || fileName.contains(".flac"));
     }
@@ -631,7 +631,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
 
                     // Skip non photo file
-                    if (isNotPhoto(original_title)) {
+                    if (isNotImages(original_title)) {
                         incrementNonPhotoCounter();
                         continue;
                     }
@@ -651,8 +651,14 @@ public class ProcessBatchImageRunnable implements Runnable {
                     Set<String> allYagoEntities = new HashSet<>();
                     String yago_match = null;
 
+                    //Record the matching_results
+                    List<String> allMatchingResults = new ArrayList<>();
+                    List<String> allOriginalCategories = new ArrayList<>();
+
+
                     //Parse the Categories
                     for (String category: commonsMetadata.getCategories()) {
+                        allOriginalCategories.add("<"+category+">");
                         startTime = System.currentTimeMillis();
                         try {
                             if (category != null && !category.isEmpty()) {
@@ -674,7 +680,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                                         // add the categories to yago_match
                                         allYagoEntities.add(yago_match);
+                                        allMatchingResults.add(yago_match);
                                     }
+                                } else {
+                                    allMatchingResults.add("<>");
                                 }
                             }
                         } catch (Exception exception) {
@@ -682,10 +691,19 @@ public class ProcessBatchImageRunnable implements Runnable {
                             logger.error("Error when parsing category: " + category);
                             logger.error(exception.getStackTrace());
                         }
+
+
+
                         endTime = System.currentTimeMillis();
                         //logger.debug("Execution time to process one category: " + (endTime - startTime));
                         time_processOneCategory.addValue((endTime - startTime));
                     }
+
+                    //Save categories info
+                    // print to groundtruth txt
+                    String contentMatchingResults = String.join(", ", allMatchingResults);
+                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
 
                     // Nulify yago_match because we will always try to match descriptions.
                     yago_match = null;
@@ -754,7 +772,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                                         // print to per_tag txt
                                         appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                                        // add the categories to yago_match
+                                        // save the categories to yago_match
                                         allYagoEntities.add(yago_match);
                                     }
                                 }
