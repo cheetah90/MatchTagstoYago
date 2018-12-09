@@ -387,9 +387,17 @@ public class MatchCategory {
             if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
         }
 
-        // Parse the noun group to match
-        yagoitem = parseAndMatch(original_categoryName);
-        if (yagoitem != null) {return yagoitem;}      // We checked for validity inside func:parseAndMatch
+        // If the last four digits are years, strip them and direct match
+        String[] category_words = original_categoryName.split("_");
+        String lastWord = category_words[category_words.length-1];
+        if (lastWord.length()==4 && lastWord.matches("[0-9]+") && (lastWord.startsWith("20") || lastWord.startsWith("19"))) {
+            String leftOverString = String.join("_", Arrays.copyOf(category_words, category_words.length-1));
+            return matchNounGroup2Yago(leftOverString);
+        } else {
+            // Parse the noun group to match
+            yagoitem = parseAndMatch(original_categoryName);
+            if (yagoitem != null) {return yagoitem;}      // We checked for validity inside func:parseAndMatch
+        }
 
         return null;
 

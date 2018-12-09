@@ -417,6 +417,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         //DEBUG: delete this line
         String lang = "en";
+
         /*
         String lang;
 
@@ -510,6 +511,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             }
         }
         */
+
 
         return (new TranslationResults(original_text, englishText, lang));
     }
