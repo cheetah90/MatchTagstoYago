@@ -723,7 +723,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                                 //prepare data to print to per_img txt
                                 if (!allYagoEntities.contains(yago_match)){
                                     // we only save them if the description matched
-                                    allOriginalCategories.add("<"+strDescription.replaceAll("\n"," ").replaceAll("\t", " ")+">");
+                                    allOriginalCategories.add("<Descriptions_omitted>");
                                     allMatchingResults.add(yago_match);
 
 
