@@ -38,8 +38,9 @@ public class NLPUtils {
     public synchronized static String getFirstPhrase(String strDescriptions) {
         if (strDescriptions!=null && !strDescriptions.equals("")){
             String firstPhrase = getFirstSentence(strDescriptions);
-            firstPhrase = firstPhrase.split(",")[0];
-            firstPhrase = firstPhrase.split(";")[0];
+            firstPhrase = firstPhrase.split("\\.")[0].trim();
+            firstPhrase = firstPhrase.split(",")[0].trim();
+            firstPhrase = firstPhrase.split(";")[0].trim();
             if (firstPhrase.contains(":")) {
                 if (firstPhrase.endsWith(":")) {
                     // if it ends with ":", just strip it off
