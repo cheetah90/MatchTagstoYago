@@ -115,6 +115,8 @@ public class MatchCategory {
             return directMatch("protest");
         } else if (category.startsWith("view_") || category.startsWith("views_")) {
             return directMatch("scenery");
+        } else if (category.startsWith("codex_")) {
+            return directMatch("codex");
         }
 
         return null;
@@ -164,7 +166,7 @@ public class MatchCategory {
         // fix the tailing "_"
         current_categoryName = current_categoryName.replaceAll("_", " ").trim().replaceAll(" ", "_");
         // try direct match
-        yago_match = directMatch(current_categoryName);
+        yago_match = parseAndMatch(current_categoryName);
 
         return yago_match;
     }

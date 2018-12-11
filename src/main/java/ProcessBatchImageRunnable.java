@@ -196,7 +196,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private static final String[] BLACKLIST_STARTWITH_CATEGORIES = { "commons", "cc-", "pd_", "categories_", "items_with", "attribution_", "gfdl", "pd-", "file_", "files_",
             "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl",
-            "location_", "executive_office_of_the_president"};
+            "location_", "executive_office_of_the_president", "with_trademark"};
 
     private static final String[] BLACKLIST_CONTAINS_CATEGORIES ={"copyright", "license", "media_type", "file_format", "media_needing", "flickr", "self-published_work", "by_user",
             "_images", "_image", "panorami", "photos_by", "upload", "personality_rights_warning", "media_lacking",
@@ -415,102 +415,95 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         String englishText = original_text;
 
-        //DEBUG: delete this line
         String lang = "en";
 
-        /*
-        String lang;
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
+            // Use local language detector
+            if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
+                // Synchronized this block since it uses static methods and variables
+                synchronized (translationLock) {
+                    TextObject textObject = textObjectFactory.forText(strip_original);
+                    Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                    lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+                }
 
-        // Use local language detector
-        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-            // Synchronized this block since it uses static methods and variables
-            synchronized (translationLock) {
-                TextObject textObject = textObjectFactory.forText(strip_original);
-                Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-                lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
-            }
+                // translate oc to fr
+                lang = lang.equals("oc")?"fr":lang;
 
-            // translate oc to fr
-            lang = lang.equals("oc")?"fr":lang;
+                // translate br to en
+                if (needHardCodetoEN(lang)) {
+                    lang = "en";
+                }
 
-            // translate br to en
-            if (needHardCodetoEN(lang)) {
-                lang = "en";
-            }
-
-        } else {
-            try {
-                lang = translateAPI.detect(strip_original);
-
-//                Detection langDetection = translateAPI.detect(strip_original);
-//                lang = langDetection.getLanguage();
-            } catch (TranslateException exception) {
-                lang = "en";
-            }
-
-        }
-
-        // Translate the text if not in English
-        if (! lang.equals("en")) {
-
-
-            String translationCachedResult;
-
-            // Synchronized the get operation
-            synchronized (translationLock) {
-                translationCachedResult = translationCache.get(strip_original);
-            }
-
-            // If the orginal text has been cached
-            if (translationCachedResult != null) {
-                englishText = translationCachedResult;
             } else {
-                // If not cached, use the translation api
+                try {
+                    lang = translateAPI.detect(strip_original);
+                } catch (TranslateException exception) {
+                    lang = "en";
+                }
+            }
 
-                switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
-                    case "microsoft": {
-                        // Use Microsoft Translator
-                        englishText = translateAPI.translate(strip_original, "", "en");
-                        // Update the lang based on the translation result
-                        if (englishText.equals(strip_original)) {
-                            lang = "en";
+            // Translate the text if not in English
+            if (! lang.equals("en")) {
+
+
+                String translationCachedResult;
+
+                // Synchronized the get operation
+                synchronized (translationLock) {
+                    translationCachedResult = translationCache.get(strip_original);
+                }
+
+                // If the orginal text has been cached
+                if (translationCachedResult != null) {
+                    englishText = translationCachedResult;
+                } else {
+                    // If not cached, use the translation api
+
+                    switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
+                        case "microsoft": {
+                            // Use Microsoft Translator
+                            englishText = translateAPI.translate(strip_original, "", "en");
+                            // Update the lang based on the translation result
+                            if (englishText.equals(strip_original)) {
+                                lang = "en";
+                            }
+
+                            break;
                         }
 
-                        break;
-                    }
+                        case "google_free": {
+                            // Use free Google Translator
+                            englishText = translateAPI.translate(strip_original, lang,"en");
+                            break;
+                        }
 
-                    case "google_free": {
-                        // Use free Google Translator
-                        englishText = translateAPI.translate(strip_original, lang,"en");
-                        break;
-                    }
-
-                    case "google_paid": {
-                        // Use Google Translator
-                        try {
+                        case "google_paid": {
+                            // Use Google Translator
+                            try {
 //                        Translation translation =
 //                                translateAPI.translate(
 //                                        strip_original,
 //                                        Translate.TranslateOption.sourceLanguage(lang),
 //                                        Translate.TranslateOption.targetLanguage("en"));
 //                        englishText = translation.getTranslatedText();
-                        } catch (TranslateException exception) {
-                            logger.error("Google Transalation API unavailable");
+                            } catch (TranslateException exception) {
+                                logger.error("Google Transalation API unavailable");
+                            }
+                            break;
                         }
-                        break;
                     }
-                }
 
-                // Synchronize the put operation
-                synchronized (translationLock) {
-                    translationCache.put(strip_original, englishText);
-                }
+                    // Synchronize the put operation
+                    synchronized (translationLock) {
+                        translationCache.put(strip_original, englishText);
+                    }
 
-                // Add this to
-                addToChartoTranslateCounter(strip_original.length());
+                    // Add this to
+                    addToChartoTranslateCounter(strip_original.length());
+                }
             }
         }
-        */
 
 
         return (new TranslationResults(original_text, englishText, lang));
