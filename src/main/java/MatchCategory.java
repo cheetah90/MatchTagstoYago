@@ -18,7 +18,7 @@ public class MatchCategory {
     private static final Logger logger = LogManager.getLogger(MatchCategory.class);
 
     /** Holds the nonconceptual categories */
-    private Set<String> nonConceptualCategories = new HashSet<>();
+    private Set<String> nonConceptualCategories;
 
     /** Holds the preferred meanings */
     private Map<String, String> preferredMeanings;
@@ -36,6 +36,7 @@ public class MatchCategory {
         this.yagoConnection = yagoConnection;
     }
 
+    @SuppressWarnings("unchecked")
     MatchCategory(Map<String, String> preferMeaning, Set<String> nonConceptualCategories, HashMap yagoLowercase2Original, HashMap yagoOriginal2Type) {
         this.preferredMeanings = preferMeaning;
         this.nonConceptualCategories = nonConceptualCategories;
@@ -150,8 +151,8 @@ public class MatchCategory {
     }
 
     private String matchWithoutParenthesis(String category) {
-        String yago_match = null;
-        String current_categoryName = null;
+        String yago_match;
+        String current_categoryName;
 
         if (category.contains("(") && !category.contains(")")){
             // if for some reason, the category is malformed, e.g. kc-130_hercules_(united_states_navy
@@ -174,8 +175,8 @@ public class MatchCategory {
     /**
      * First match the text without parenthesis and then the text inside the parenthesis
      * e.g. https://commons.wikimedia.org/wiki/File:Milevsko_okres_P%C3%ADsek_(3.).jpg
-     * @param category
-     * @return
+     * @param category the category to be matched
+     * @return yago_match matching results
      */
     private String matchInsideParenthesis(String category){
         String yago_match = null;
@@ -432,7 +433,7 @@ public class MatchCategory {
 
     private String querySQLDatabase(String queryString) {
         try {
-            PreparedStatement stmt = null;
+            PreparedStatement stmt;
 
             // if it corresponds to a entity name, return its type
             String query_yagotype = "SELECT * FROM YAGOTYPES WHERE LOWER(subject) = ? ";
