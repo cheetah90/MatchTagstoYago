@@ -694,11 +694,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                         time_processOneCategory.addValue((endTime - startTime));
                     }
 
-                    //Save categories info
-                    // print to groundtruth txt
-                    String contentMatchingResults = String.join(", ", allMatchingResults);
-                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
-                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
+
+
 
                     // Nulify yago_match because we will always try to match descriptions.
                     yago_match = null;
@@ -725,6 +722,11 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                                 //prepare data to print to per_img txt
                                 if (!allYagoEntities.contains(yago_match)){
+                                    // we only save them if the description matched
+                                    allOriginalCategories.add("<"+strDescription+">");
+                                    allMatchingResults.add(yago_match);
+
+
                                     // print to per_tag txt
                                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
@@ -741,6 +743,12 @@ public class ProcessBatchImageRunnable implements Runnable {
                     endTime = System.currentTimeMillis();
                     //logger.debug("Execution time to process one description " + (endTime - startTime));
                     time_processOneDescription.addValue((endTime - startTime));
+
+                    //Save categories info
+                    // print to groundtruth txt
+                    String contentMatchingResults = String.join(", ", allMatchingResults);
+                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
 
 
                     // Start to match the title
