@@ -132,9 +132,11 @@ public class MediaWikiCommonsAPI {
                     String[] raw_Categories = extmetadata.getJSONObject("Categories").getString("value").split("\\|");
                     ArrayList<String> strCategories = new ArrayList<>();
                     for (String currentCat: raw_Categories) {
-                        //preprocess the categories to conform to the standard in the matchingYago code
-                        String strCat = currentCat.replaceAll(" ", "_");
-                        strCategories.add(strCat);
+                        if (!currentCat.isEmpty()){
+                            //preprocess the categories to conform to the standard in the matchingYago code
+                            String strCat = currentCat.replaceAll(" ", "_");
+                            strCategories.add(strCat);
+                        }
                     }
                     metadata.setCategories(strCategories);
 
