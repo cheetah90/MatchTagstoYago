@@ -203,7 +203,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             "media_supported_by", "media_by", "media_from", "media_with", "pages_with_map", "media_contributed_by", "user:",
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
-            "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_",
+            "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki",
             "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "_applicable", "possible", "featured_pictures"
     };
 
@@ -695,61 +695,60 @@ public class ProcessBatchImageRunnable implements Runnable {
                     }
 
 
+                    if (yago_match == null) {
+                        // Nulify yago_match because we will always try to match descriptions.
+                        startTime = System.currentTimeMillis();
+                        try {
+                            // If the description exist try to match it
+                            if (commonsMetadata.getDescription() != null && !commonsMetadata.getDescription().isEmpty()) {
+                                String strDescription = commonsMetadata.getDescription();
+
+                                // Translate for the first phrase
+                                //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translate(strDescription));
+                                TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateDescription(strDescription));
+                                String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
+
+                                // if the first phrase is short enough, match
+                                if (!firstPhraseEng.isEmpty() && firstPhraseEng.split("_").length < MAXTOKENSINAPHRASE && isValidNounGroup(firstPhraseEng)) {
+                                    yago_match = matchNounPhraseTranslation2Yago(firstPhraseTranslation);
+                                }
+
+                                // Check and print
+                                if (yago_match != null) {
+                                    // switch the needToMatchTitle flag
+                                    needToMatchTitle = false;
+
+                                    //prepare data to print to per_img txt
+                                    if (!allYagoEntities.contains(yago_match)){
+                                        // we only save them if the description matched
+                                        allOriginalCategories.add("<Descriptions_omitted>");
+                                        allMatchingResults.add(yago_match);
 
 
-                    // Nulify yago_match because we will always try to match descriptions.
-                    yago_match = null;
-                    startTime = System.currentTimeMillis();
-                    try {
-                        // If the description exist try to match it
-                        if (commonsMetadata.getDescription() != null && !commonsMetadata.getDescription().isEmpty()) {
-                            String strDescription = commonsMetadata.getDescription();
+                                        // print to per_tag txt
+                                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
 
-                            // Translate for the first phrase
-                            //TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translate(strDescription));
-                            TranslationResults firstPhraseTranslation = getFirstPhraseTranslationResults(translateDescription(strDescription));
-                            String firstPhraseEng = firstPhraseTranslation.getTranslatedText();
-
-                            // if the first phrase is short enough, match
-                            if (!firstPhraseEng.isEmpty() && firstPhraseEng.split("_").length < MAXTOKENSINAPHRASE && isValidNounGroup(firstPhraseEng)) {
-                                yago_match = matchNounPhraseTranslation2Yago(firstPhraseTranslation);
-                            }
-
-                            // Check and print
-                            if (yago_match != null) {
-                                // switch the needToMatchTitle flag
-                                needToMatchTitle = false;
-
-                                //prepare data to print to per_img txt
-                                if (!allYagoEntities.contains(yago_match)){
-                                    // we only save them if the description matched
-                                    allOriginalCategories.add("<Descriptions_omitted>");
-                                    allMatchingResults.add(yago_match);
-
-
-                                    // print to per_tag txt
-                                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + yago_match, "./output_per_tag.tsv");
-
-                                    // add the categories to yago_match
-                                    allYagoEntities.add(yago_match);
+                                        // add the categories to yago_match
+                                        allYagoEntities.add(yago_match);
+                                    }
                                 }
                             }
+                        } catch (Exception exception) {
+                            logger.error("Error when parsing file: " + original_title);
+                            logger.error("Error when parsing description: " + commonsMetadata.getDescription());
+                            logger.error(exception.getStackTrace());
                         }
-                    } catch (Exception exception) {
-                        logger.error("Error when parsing file: " + original_title);
-                        logger.error("Error when parsing description: " + commonsMetadata.getDescription());
-                        logger.error(exception.getStackTrace());
+                        endTime = System.currentTimeMillis();
+                        //logger.debug("Execution time to process one description " + (endTime - startTime));
+                        time_processOneDescription.addValue((endTime - startTime));
                     }
-                    endTime = System.currentTimeMillis();
-                    //logger.debug("Execution time to process one description " + (endTime - startTime));
-                    time_processOneDescription.addValue((endTime - startTime));
 
-                    //Save categories info
-                    // print to groundtruth txt
+
+                    // Save categories info
+                    // print to ground truth txt
                     String contentMatchingResults = String.join(", ", allMatchingResults);
                     String contentOriginalCategories = String.join(", ", allOriginalCategories);
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
-
 
                     // Start to match the title
                     try {

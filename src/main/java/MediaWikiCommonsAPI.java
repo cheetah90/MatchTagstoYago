@@ -2,9 +2,8 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,6 +72,20 @@ public class MediaWikiCommonsAPI {
 
     public MediaWikiCommonsAPI(){ }
 
+
+    private Set<String> extractRedirectImages(JSONObject resultsJSON){
+        HashSet<String> redirectImages = new HashSet<>();
+        if (resultsJSON.getJSONObject("query").has("redirects")) {
+             JSONArray redirects = resultsJSON.getJSONObject("query").getJSONArray("redirects");
+             for (int i = 0; i < redirects.length(); i++) {
+                 String strRedirect = redirects.getJSONObject(i).get("to").toString().replace("File:","").replaceAll(" ","_");
+                 redirectImages.add(strRedirect);
+             }
+        }
+
+        return redirectImages;
+    }
+
     // Making this method thread-safe
     public List<CommonsMetadata> createMetadata(List<String> batch_filenames){
         // Initiate the return object
@@ -91,7 +104,7 @@ public class MediaWikiCommonsAPI {
         String requestURL = null;
 
         try{
-            requestURL = baseURL + URLEncoder.encode(titles_all, charset) + "&prop=imageinfo&iiprop=extmetadata&format=json";
+            requestURL = baseURL + URLEncoder.encode(titles_all, charset) + "&prop=imageinfo&iiprop=extmetadata&format=json&redirects";
 
             //Send HTTP Request
             URLConnection connection = new URL(requestURL).openConnection();
@@ -110,6 +123,9 @@ public class MediaWikiCommonsAPI {
             JSONObject resultsJSON = new JSONObject(responseStrBuilder.toString());
             JSONObject pagesJSON = resultsJSON.getJSONObject("query").getJSONObject("pages");
 
+            // Get the redirect image names
+            Set<String> redirectsImages = extractRedirectImages(resultsJSON);
+
 
             // Parse each pages and add to return object
             Iterator<String> keys = pagesJSON.keys();
@@ -119,12 +135,17 @@ public class MediaWikiCommonsAPI {
                 CommonsMetadata metadata = new CommonsMetadata();
 
                 try {
-                    // set pageid
+                    // Extract pageid
                     String pageid = keys.next();
-                    metadata.setPageID(Integer.parseInt(pageid));
-
-                    // Set title
+                    // Extract title
                     String title = pagesJSON.getJSONObject(pageid).getString("title").substring(5).replaceAll(" ", "_");
+
+                    // If this image name is a redirect, skip it.
+                    if (redirectsImages.contains(title)) {
+                        continue;
+                    }
+
+                    metadata.setPageID(Integer.parseInt(pageid));
                     metadata.setTitle(title);
 
                     //Parse and add categories
