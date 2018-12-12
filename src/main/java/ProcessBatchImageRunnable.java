@@ -204,7 +204,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki",
-            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "interior", "_version", "_applicable", "possible", "featured_pictures"
+            "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "_version", "_applicable", "possible", "featured_pictures"
     };
 
     private static final String[] BLACKLIST_EQUAL_CATEGORIES={"fal", "attribution", "retouched_pictures", "vector_graphics", "cecill"
@@ -379,9 +379,23 @@ public class ProcessBatchImageRunnable implements Runnable {
                 current_category = "Periodic_table";
             }
 
+            // Deal with special case "general view of Casa Mila"
             if (current_category.toLowerCase().contains("views_of_")) {
                 current_category = current_category.substring(current_category.indexOf("views_of_")+9);
             }
+            if (current_category.toLowerCase().contains("view_of_")) {
+                current_category = current_category.substring(current_category.indexOf("view_of_")+8);
+            }
+
+            // Parse the "exterior of " and "interior of"
+            if (current_category.toLowerCase().contains("exterior_of") ||
+                    current_category.toLowerCase().contains("exteriors_of") ||
+                    current_category.toLowerCase().contains("interior_of") ||
+                    current_category.toLowerCase().contains("interiors_of")) {
+                additional_category.addAll(Arrays.asList(current_category.split("_of_")));
+                continue;
+            }
+
 
             // process this normal category
             if (isValidNounGroup(current_category)){
