@@ -379,6 +379,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                 current_category = "Periodic_table";
             }
 
+            if (current_category.toLowerCase().contains("views_of_")) {
+                current_category = current_category.substring(current_category.indexOf("views_of_")+9);
+            }
+
             // process this normal category
             if (isValidNounGroup(current_category)){
                 ultimate_category.add(current_category);
