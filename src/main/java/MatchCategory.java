@@ -118,6 +118,8 @@ public class MatchCategory {
             return directMatch("scenery");
         } else if (category.startsWith("codex_")) {
             return directMatch("codex");
+        } else if (category.contains("rijksmonumenten")) {
+            return directMatch("national_heritage_site");
         }
 
         return null;
@@ -395,6 +397,9 @@ public class MatchCategory {
         String lastWord = category_words[category_words.length-1];
         if (lastWord.length()==4 && lastWord.matches("[0-9]+") && (lastWord.startsWith("20") || lastWord.startsWith("19"))) {
             String leftOverString = String.join("_", Arrays.copyOf(category_words, category_words.length-1));
+            if (leftOverString.endsWith("in")) {
+                leftOverString = leftOverString.substring(0,leftOverString.length()-2);
+            }
             return matchNounGroup2Yago(leftOverString);
         } else {
             // Parse the noun group to match

@@ -23,6 +23,7 @@ public class MediaWikiCommonsAPI {
             this.categories = categories;
             this.description = description;
             this.pageID = pageID;
+            this.originalTitle = title;
         }
 
         public CommonsMetadata() {}
@@ -59,7 +60,15 @@ public class MediaWikiCommonsAPI {
             this.pageID = pageID;
         }
 
+        public String getOriginalTitle() { return originalTitle; }
+
+        public void setOriginalTitle(String originalTitle) { this.originalTitle = originalTitle; }
+
         private String title;
+
+
+
+        private String originalTitle;
         private List<String> categories;
         private String description;
         private int pageID;
@@ -86,7 +95,58 @@ public class MediaWikiCommonsAPI {
         return redirectImages;
     }
 
-    // Making this method thread-safe
+    public List<String> getParentCategories(String category) {
+        List<String> parentCategories = new ArrayList<>();
+
+        try{
+            String requestURL = baseURL + "Category:"+ URLEncoder.encode(category, charset) + "&prop=categories&format=json&redirects";
+
+            //Send HTTP Request
+            URLConnection connection = new URL(requestURL).openConnection();
+            connection.setRequestProperty("Accept-Charset", charset);
+            InputStream response = connection.getInputStream();
+
+            // Get response into string
+            BufferedReader streamReader = new BufferedReader(new InputStreamReader(response, charset));
+            StringBuilder responseStrBuilder = new StringBuilder();
+            String inputStr;
+            while ((inputStr = streamReader.readLine()) != null) {
+                responseStrBuilder.append(inputStr);
+            }
+
+            // Parse the json
+            JSONObject resultsJSON = new JSONObject(responseStrBuilder.toString());
+            JSONObject pagesJSON = resultsJSON.getJSONObject("query").getJSONObject("pages");
+
+            // Parse each pages and add to return object
+            Iterator<String> keys = pagesJSON.keys();
+
+            while (keys.hasNext()) {
+                try {
+                    // Extract pageid
+                    String pageid = keys.next();
+                    // Extract title
+                    JSONArray parentCategoriesArray = pagesJSON.getJSONObject(pageid).getJSONArray("categories");
+
+                    for (int i = 0; i < parentCategoriesArray.length(); i++) {
+                        String strParentCategory = parentCategoriesArray.getJSONObject(i).getString("title").replace("Category:","").replaceAll(" ","_");
+                        parentCategories.add(strParentCategory);
+                    }
+
+                } catch (JSONException exception) {
+
+                }
+            }
+
+
+        } catch (IOException exception){
+
+        }
+
+        return parentCategories;
+    }
+
+    // This method should be thread-safe
     public List<CommonsMetadata> createMetadata(List<String> batch_filenames){
         // Initiate the return object
         List<CommonsMetadata> commonsMetadata_array = new ArrayList<>();
@@ -147,6 +207,7 @@ public class MediaWikiCommonsAPI {
 
                     metadata.setPageID(Integer.parseInt(pageid));
                     metadata.setTitle(title);
+                    metadata.setOriginalTitle(title);
 
                     //Parse and add categories
                     JSONObject extmetadata = pagesJSON.getJSONObject(pageid).getJSONArray("imageinfo").getJSONObject(0).getJSONObject("extmetadata");
