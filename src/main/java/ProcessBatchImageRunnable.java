@@ -653,6 +653,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     isFlickr = false;
                     isPanoramio = false;
                     boolean needToMatchTitle = true;
+                    boolean needToMatchDescription = true;
 
                     //Filter out non-topical categories
                     startTime = System.currentTimeMillis();
@@ -685,6 +686,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                                 if (yago_match != null) {
                                     // switch the needToMatchTitle flag
                                     needToMatchTitle = false;
+                                    needToMatchDescription = false;
 
                                     //prepare data to print to per_img txt
                                     allMatchingResults.add(yago_match);
@@ -713,7 +715,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     }
 
 
-                    if (yago_match == null) {
+                    if (needToMatchDescription) {
                         // Nulify yago_match because we will always try to match descriptions.
                         startTime = System.currentTimeMillis();
                         try {
@@ -771,7 +773,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     // Start to match the title
                     try {
                         // If no thing is matched so far, try to match the original_title
-                        if (yago_match == null && needToMatchTitle) {
+                        if (needToMatchTitle) {
                             String proper_title = commonsMetadata.getTitle();
 
                             if (isNotBlacklist(proper_title) && proper_title.length() > MINCHARSINTITLE) {
