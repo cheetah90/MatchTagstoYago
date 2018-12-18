@@ -120,6 +120,12 @@ public class MatchCategory {
             return directMatch("codex");
         } else if (category.contains("rijksmonumenten")) {
             return directMatch("national_heritage_site");
+        } else if (category.contains("cultural_properties_of")) {
+            return directMatch("cultural_heritage_monument");
+        } else if (category.contains("heritage_properties")) {
+            return directMatch("cultural_heritage_monument");
+        } else if (category.contains("timber_framing")) {
+            return directMatch("timber_framing");
         }
 
         return null;
@@ -222,6 +228,8 @@ public class MatchCategory {
                 && !yagoitem.contains("wikicat_Pictures")
                 && !yagoitem.contains("wikicat_Objects")
                 && !yagoitem.contains("wikicat_photograph")
+                && !yagoitem.equals("<Serie>")
+                && !yagoitem.contains("wordnet_series")
                 && !isWrongAcronym(yagoitem, original_text));
     }
 
