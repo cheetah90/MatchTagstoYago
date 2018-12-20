@@ -20,7 +20,7 @@ public class TagstoYagoMatcher {
 
     private static final Properties PROPERTIES = new Properties();
 
-    private static final int NUM_IMAGES_IN_BATCH = 50;
+    private static final int NUM_IMAGES_IN_BATCH = 100;
 
     private static final Logger logger = LogManager.getLogger(TagstoYagoMatcher.class);
 
