@@ -142,7 +142,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     static final SummaryStatistics time_processOneDescription = new SynchronizedSummaryStatistics();
 
-    static final SummaryStatistics time_oneImage = new SynchronizedSummaryStatistics();
+    static final SummaryStatistics time_oneBatch = new SynchronizedSummaryStatistics();
 
     static final HashMap<String, String> translationCache = new HashMap<>();
 
@@ -897,7 +897,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             }
         } finally {
             long endTime_batch = System.currentTimeMillis();
-            time_oneImage.addValue((endTime_batch - startTime_batch));
+            time_oneBatch.addValue((endTime_batch - startTime_batch));
             logger.debug("Execution time to process one batch of images: " + (endTime_batch - startTime_batch));
         }
 

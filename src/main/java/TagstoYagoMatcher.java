@@ -346,8 +346,7 @@ public class TagstoYagoMatcher {
         logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessBatchImageRunnable.time_preprocessCommonsMetadata.getMean());
         logger.info("The avg execution time to process one category is: " + ProcessBatchImageRunnable.time_processOneCategory.getMean());
         logger.info("The avg execution time to process one description is: " + ProcessBatchImageRunnable.time_processOneDescription.getMean());
-        logger.info("The avg execution time to process one batch of images (50) is: " + ProcessBatchImageRunnable.time_oneImage.getMean());
-
+        logger.info("The avg execution time to process one batch of images (" + NUM_IMAGES_IN_BATCH + ") is: " + ProcessBatchImageRunnable.time_oneBatch.getMean());
     }
 
     /** Read file backwards. Does not use buffers, therefore slow */
