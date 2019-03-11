@@ -146,6 +146,32 @@ public class MediaWikiCommonsAPI {
         return parentCategories;
     }
 
+    public List<CommonsMetadata> createMetadataFromDump(List<String> originalImgCatsArray){
+        // Initiate the return object
+        List<CommonsMetadata> commonsMetadata_array = new ArrayList<>();
+
+
+        for (String aImgCats: originalImgCatsArray){
+            // Initiate the CommonsMetadata Objects
+            CommonsMetadata metadata = new CommonsMetadata();
+
+            // parse this line and set metadata properties
+            String[] aImgCatsContent = aImgCats.split("\t");
+            metadata.setPageID(Integer.parseInt(aImgCatsContent[0]));
+            metadata.setTitle(aImgCatsContent[1]);
+            metadata.setOriginalTitle(aImgCatsContent[1]);
+            metadata.setCategories(Arrays.asList(aImgCatsContent[2].split("<>")));
+            metadata.setDescription("");    // set empty descriptions
+
+            // add to the output
+            commonsMetadata_array.add(metadata);
+        }
+
+        return commonsMetadata_array;
+
+    }
+
+
     // This method should be thread-safe
     public List<CommonsMetadata> createMetadata(List<String> batch_filenames){
         // Initiate the return object
@@ -191,7 +217,7 @@ public class MediaWikiCommonsAPI {
             Iterator<String> keys = pagesJSON.keys();
 
             while (keys.hasNext()) {
-                // Initiate the COmmonsMetadata Objects
+                // Initiate the CommonsMetadata Objects
                 CommonsMetadata metadata = new CommonsMetadata();
 
                 try {

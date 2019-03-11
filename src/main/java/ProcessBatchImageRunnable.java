@@ -180,7 +180,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MicrosoftTranslatorAPI translateAPI;
 
-    private ArrayList<String> originalTitleArray;
+    private ArrayList<String> originalImgCatsArray;
 
     private boolean isFlickr = false;
 
@@ -213,8 +213,8 @@ public class ProcessBatchImageRunnable implements Runnable {
     };
 
 
-    ProcessBatchImageRunnable(ArrayList<String> originalTitleArray) {
-        this.originalTitleArray = originalTitleArray;
+    ProcessBatchImageRunnable(ArrayList<String> originalImageCatsArray) {
+        this.originalImgCatsArray = originalImageCatsArray;
 
         try {
             // Set up the Google Translate API connection
@@ -786,10 +786,12 @@ public class ProcessBatchImageRunnable implements Runnable {
             long endTime;
 
             // Retrieve all the metadata
-            startTime = System.currentTimeMillis();
-            List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadata(this.originalTitleArray);
-            endTime = System.currentTimeMillis();
-            time_mediaWikipeida.addValue((endTime - startTime));
+//            startTime = System.currentTimeMillis();
+//            List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadata(this.originalImgCatsArray);
+//            endTime = System.currentTimeMillis();
+//            time_mediaWikipeida.addValue((endTime - startTime));
+
+            List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadataFromDump(this.originalImgCatsArray);
 
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
                 // threadsafe increment the started Counter
@@ -801,9 +803,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                     continue;
                 }
 
+                String original_title = commonsMetadata.getTitle();
+
                 try {
-                    String original_title = commonsMetadata.getOriginalTitle();
-                    logger.info("Start processing " + (startedCounter) + " | title: " + original_title);
+                    logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getPageID());
 
                     // Skip non photo file
                     if (isNotImages(original_title)) {

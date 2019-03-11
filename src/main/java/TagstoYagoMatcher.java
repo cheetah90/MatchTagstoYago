@@ -291,23 +291,23 @@ public class TagstoYagoMatcher {
             BufferedReader br = new BufferedReader(new FileReader(file_ImageNames));
             boolean stayInLoop = true;
 
-            // load 50 titles and then assign to a thread.
+            // load NUM_IMAGES_IN_BATCH titles and then assign to a thread.
             while (stayInLoop) {
-                ArrayList<String> batch_titles = new ArrayList<>();
+                ArrayList<String> batch_imageCats = new ArrayList<>();
 
                 // gather 50 titles and then process
                 for (int i = 0; i< NUM_IMAGES_IN_BATCH && stayInLoop; i++) {
-                    String title;
-                    if ((title = br.readLine()) != null) {
-                        batch_titles.add(title);
+                    String a_line;
+                    if ((a_line = br.readLine()) != null) {
+                        batch_imageCats.add(a_line);
                     } else {
                         stayInLoop = false;
                     }
                 }
 
                 // Assign it to thread
-                if (batch_titles.size() > 0) {
-                    pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_titles)));
+                if (batch_imageCats.size() > 0) {
+                    pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_imageCats)));
                 }
             }
         } catch (Exception exception) {
