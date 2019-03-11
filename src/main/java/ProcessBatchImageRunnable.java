@@ -806,7 +806,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                 String original_title = commonsMetadata.getTitle();
 
                 try {
-                    logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getPageID());
+                    logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
 
                     // Skip non photo file
                     if (isNotImages(original_title)) {
