@@ -8,6 +8,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,11 +21,11 @@ public class TagstoYagoMatcher {
 
     private static final Properties PROPERTIES = new Properties();
 
-    private static final int NUM_IMAGES_IN_BATCH = 100;
+    // Production setting: 100
+
+    // Production setting: 1000000
 
     private static final Logger logger = LogManager.getLogger(TagstoYagoMatcher.class);
-
-    private Connection db4SamplesConnection;
 
     private final static HashMap<String, HashSet<String>> yagoLowercase2Original = new HashMap<>();
 
@@ -34,7 +35,7 @@ public class TagstoYagoMatcher {
     protected Map<String, String> preferredMeanings;
 
     // Holds the nonconceptual categorie
-    protected Set<String> nonConceptualCategories = new HashSet<>();
+//    protected Set<String> nonConceptualCategories = new HashSet<>();
 
     // Counters to determine if wait too long
     int lastCounter = 1;
@@ -61,7 +62,6 @@ public class TagstoYagoMatcher {
         }
 
         logger.info("Start to load Yago data...");
-        System.out.println("Start to load Yago data...");
 
         // Initialize connection to Yago's sample
         if (PROPERTIES.getProperty("LoadYago2Memory").equals("true")) {
@@ -279,9 +279,6 @@ public class TagstoYagoMatcher {
         clearOutputfile("./output_per_img.tsv");
         clearOutputfile("./output_groundtruth.tsv");
 
-        // Create ThreadPool
-        ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(PROPERTIES.getProperty("maxThreadPool")));
-
         String file_ImageNames = "./image_names.txt";
 
         int numofImages = getLineNumberofFile(file_ImageNames);
@@ -290,49 +287,67 @@ public class TagstoYagoMatcher {
         try {
             // Buffered read the file
             BufferedReader br = new BufferedReader(new FileReader(file_ImageNames));
-            boolean stayInLoop = true;
+            String a_line;
+            int line_counter = 0;
 
-            // load NUM_IMAGES_IN_BATCH titles and then assign to a thread.
-            while (stayInLoop) {
-                ArrayList<String> batch_imageCats = new ArrayList<>();
+            ExecutorService pool = null;
+            ArrayList<String> batch_imageCats = null;
 
-                // gather 50 titles and then process
-                for (int i = 0; i< NUM_IMAGES_IN_BATCH && stayInLoop; i++) {
-                    String a_line;
-                    if ((a_line = br.readLine()) != null) {
-                        batch_imageCats.add(a_line);
-                    } else {
-                        stayInLoop = false;
+
+            // Read through the file
+            while ((a_line = br.readLine()) != null) {
+                // Split by 1m lines
+                if (line_counter % Integer.parseInt(PROPERTIES.getProperty("numImgsInSplit"))== 0) {
+                    // if reachings 1m, shutdown the pool, wait until all tasks have completed
+                    if (pool != null) {
+                        // report the current status after this split.
+                        System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
+                        logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
+
+                        //Finished creating the threads
+                        pool.shutdown();
+                        // Wait until these tasks finished
+                        if (!pool.awaitTermination(10, TimeUnit.MINUTES)) {
+                            logger.error("Reached the ExecutorService timeout!");
+                            pool.shutdownNow();
+                        }
                     }
+
+                    pool = Executors.newFixedThreadPool(Integer.parseInt(PROPERTIES.getProperty("maxThreadPool")));
                 }
 
-                // Assign it to thread
-                if (batch_imageCats.size() > 0) {
-                    pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_imageCats)));
+                // For every 100, assign to a thread
+                if (line_counter % Integer.parseInt(PROPERTIES.getProperty("numImgsInBatch"))== 0) {
+                    if (batch_imageCats != null && batch_imageCats.size() > 0) {
+                        pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_imageCats)));
+                    }
+                    //Create a new batch_imageCats for next batch
+                    batch_imageCats = new ArrayList<>();
                 }
+
+                batch_imageCats.add(a_line);
+
+                line_counter++;
             }
+
+            // process the remaining batch
+            pool.execute(new ProcessBatchImageRunnable(new ArrayList<>(batch_imageCats)));
+            //Finished creating the threads
+            pool.shutdown();
+            // Wait until these tasks finished
+            if (!pool.awaitTermination(10, TimeUnit.MINUTES)) {
+                logger.error("Reached the ExecutorService timeout!");
+                pool.shutdownNow();
+            }
+
+
         } catch (Exception exception) {
             logger.error("filenames.txt does not exist!");
             exception.printStackTrace();
         }
 
-        //Finished creating the threads
-        pool.shutdown();
 
-        //Initialize the counter
 
-        // Looping and profile the progress
-        while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages && ! waitTooLong()) {
-            System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
-            logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
-            try {
-                synchronized (this) {
-                    this.wait(10000);
-                }
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
@@ -347,7 +362,7 @@ public class TagstoYagoMatcher {
         logger.info("The avg execution time for preprocessCommonsMetadata() is: " + ProcessBatchImageRunnable.time_preprocessCommonsMetadata.getMean());
         logger.info("The avg execution time to process one category is: " + ProcessBatchImageRunnable.time_processOneCategory.getMean());
         logger.info("The avg execution time to process one description is: " + ProcessBatchImageRunnable.time_processOneDescription.getMean());
-        logger.info("The avg execution time to process one batch of images (" + NUM_IMAGES_IN_BATCH + ") is: " + ProcessBatchImageRunnable.time_oneBatch.getMean());
+        logger.info("The avg execution time to process one batch of images (" + PROPERTIES.getProperty("numImgsInBatch") + ") is: " + ProcessBatchImageRunnable.time_oneBatch.getMean());
     }
 
     /** Read file backwards. Does not use buffers, therefore slow */
@@ -415,9 +430,7 @@ public class TagstoYagoMatcher {
             return;
         }
 
-        System.out.println("Star the whole process");
         TagstoYagoMatcher tagstoYagoMatcher = new TagstoYagoMatcher();
-        System.out.println("Finished initializing");
         tagstoYagoMatcher.startWorking();
 
     }

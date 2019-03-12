@@ -796,6 +796,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
                 // threadsafe increment the started Counter
                 incrementStartedCounter();
+                logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
 
                 // If failed to parse JSON for this object, skip but increment the failure counter
                 if (commonsMetadata.getOriginalTitle() == null) {
@@ -806,7 +807,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                 String original_title = commonsMetadata.getTitle();
 
                 try {
-                    logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
 
                     // Skip non photo file
                     if (isNotImages(original_title)) {
