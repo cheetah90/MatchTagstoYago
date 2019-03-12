@@ -307,8 +307,9 @@ public class TagstoYagoMatcher {
                         //Finished creating the threads
                         pool.shutdown();
                         // Wait until these tasks finished
-                        if (!pool.awaitTermination(10, TimeUnit.MINUTES)) {
-                            logger.error("Reached the ExecutorService timeout!");
+                        if (!pool.awaitTermination(60, TimeUnit.MINUTES)) {
+                            System.out.println("Error: reached the ExecutorService timeout!");
+                            logger.error("Error: reached the ExecutorService timeout!");
                             pool.shutdownNow();
                         }
                     }
@@ -335,8 +336,9 @@ public class TagstoYagoMatcher {
             //Finished creating the threads
             pool.shutdown();
             // Wait until these tasks finished
-            if (!pool.awaitTermination(10, TimeUnit.MINUTES)) {
-                logger.error("Reached the ExecutorService timeout!");
+            if (!pool.awaitTermination(60, TimeUnit.MINUTES)) {
+                System.out.println("Error: reached the ExecutorService timeout!");
+                logger.error("Error: reached the ExecutorService timeout!");
                 pool.shutdownNow();
             }
 
