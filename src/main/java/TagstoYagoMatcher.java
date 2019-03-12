@@ -321,6 +321,11 @@ public class TagstoYagoMatcher {
         //Initialize the counter
 
         // Looping and profile the progress
+        System.out.println("ProcessBatchImageRunnable.getCompletedCounter(): " + ProcessBatchImageRunnable.getCompletedCounter());
+        System.out.println("numofImages: " + numofImages);
+        System.out.println("lastCounter: " + lastCounter);
+        System.out.println("secondLastCounter:" + secondLastCounter);
+        System.out.println("waitTooLong(): " + waitTooLong());
         while (ProcessBatchImageRunnable.getCompletedCounter() < numofImages && ! waitTooLong()) {
             System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
             logger.info("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
