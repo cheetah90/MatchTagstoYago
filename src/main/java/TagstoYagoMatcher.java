@@ -347,9 +347,7 @@ public class TagstoYagoMatcher {
             logger.error("filenames.txt does not exist!");
             exception.printStackTrace();
         }
-
-
-
+        
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
