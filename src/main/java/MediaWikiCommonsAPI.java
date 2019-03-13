@@ -98,8 +98,10 @@ public class MediaWikiCommonsAPI {
     public List<String> getParentCategories(String category) {
         List<String> parentCategories = new ArrayList<>();
 
+        String requestURL = null;
+
         try{
-            String requestURL = baseURL + "Category:"+ URLEncoder.encode(category, charset) + "&prop=categories&format=json&redirects";
+            requestURL = baseURL + "Category:"+ URLEncoder.encode(category, charset) + "&prop=categories&format=json&redirects";
 
             //Send HTTP Request
             URLConnection connection = new URL(requestURL).openConnection();
@@ -140,7 +142,21 @@ public class MediaWikiCommonsAPI {
 
 
         } catch (IOException exception){
-
+            logger.error("Error: can't accessing URL: " + requestURL);
+            exception.printStackTrace();
+            synchronized (lockFailureCounter) {
+                if ( num_continuous_failures < 3){
+                    num_continuous_failures++;
+                } else {
+                    num_continuous_failures = 0;
+                    // The MediaWiki server might have detected us! Let's sleep for a while
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException interruptedEx) {
+                        interruptedEx.printStackTrace();
+                    }
+                }
+            }
         }
 
         return parentCategories;
