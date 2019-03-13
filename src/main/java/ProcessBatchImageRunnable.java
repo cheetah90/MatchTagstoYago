@@ -891,8 +891,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                     incrementValidPhotoCounter();
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
-                    // log finish
-                    logger.info("Finish processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
 
                 } finally {
                     ProcessBatchImageRunnable.incrementCompletedCounter();

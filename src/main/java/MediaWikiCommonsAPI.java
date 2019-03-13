@@ -106,6 +106,7 @@ public class MediaWikiCommonsAPI {
             //Send HTTP Request
             URLConnection connection = new URL(requestURL).openConnection();
             connection.setRequestProperty("Accept-Charset", charset);
+            connection.setRequestProperty("User-Agent", "CommonsContentDistributionBot. Owner: allen.lin@eecs.northwestern.edu");
             InputStream response = connection.getInputStream();
 
             // Get response into string
