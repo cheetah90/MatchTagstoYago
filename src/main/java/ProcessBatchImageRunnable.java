@@ -843,9 +843,9 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                     // Save categories info
                     // print to ground truth txt
-                    String contentMatchingResults = String.join(", ", allMatchingResults);
-                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
-                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
+//                    String contentMatchingResults = String.join(", ", allMatchingResults);
+//                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
+//                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
 
                     // Start to match the title
                     try {
