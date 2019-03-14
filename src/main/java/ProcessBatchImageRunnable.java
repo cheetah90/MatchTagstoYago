@@ -1,5 +1,4 @@
 import basics.FactComponent;
-//import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.translate.*;
 import com.google.common.base.Optional;
 import com.optimaize.langdetect.LanguageDetector;
@@ -18,7 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utils.NLPUtils;
 
-import javax.print.attribute.standard.Media;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
@@ -152,9 +150,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     static final SummaryStatistics time_oneBatch = new SynchronizedSummaryStatistics();
 
-    static final HashMap<String, String> translationCache = new HashMap<>();
-
-    static final Object translationCacheLock = new Object();
+    static final ConcurrentHashMap<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
      * Finish static methods and variables
@@ -186,7 +182,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MediaWikiCommonsAPI mediaWikiCommonsAPI;
 
-    private MicrosoftTranslatorAPI translateAPI;
+    private Translator translateAPI;
 
     private ArrayList<String> originalImgCatsArray;
 
@@ -225,12 +221,6 @@ public class ProcessBatchImageRunnable implements Runnable {
         this.originalImgCatsArray = originalImageCatsArray;
 
         try {
-            // Set up the Google Translate API connection
-            //GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("./src/main/resources/google_api_key.json"));
-            //this.translateAPI = TranslateOptions.newBuilder().setCredentials(credentials).build().getService();
-            //this.googleTranslate = new GoogleFreeTranslateAPI();
-            translateAPI = new MicrosoftTranslatorAPI();
-
             // Set up the MediaWikiCommons API
             this.mediaWikiCommonsAPI = new MediaWikiCommonsAPI();
 
@@ -453,6 +443,19 @@ public class ProcessBatchImageRunnable implements Runnable {
         String lang = "en";
 
         if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
+            // Initialize the translator api
+            switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
+                case "microsoft": {
+                    this.translateAPI = new MicrosoftTranslatorAPI();
+                    break;
+                }
+                case "google_free": {
+                    this.translateAPI = new GoogleFreeTranslateAPI();
+                    break;
+                }
+            }
+
+
             // Use local language detector
             if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
                 // Synchronized this block since it uses static methods and variables
@@ -469,7 +472,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                 if (needHardCodetoEN(lang)) {
                     lang = "en";
                 }
-
             } else {
                 try {
                     lang = translateAPI.detect(strip_original);
@@ -480,61 +482,25 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Translate the text if not in English
             if (! lang.equals("en")) {
-
-
                 String translationCachedResult;
 
                 // Synchronized the get operation
-                synchronized (translationLock) {
-                    translationCachedResult = translationCache.get(strip_original);
-                }
+                translationCachedResult = ProcessBatchImageRunnable.translationCache.get(strip_original);
 
                 // If the orginal text has been cached
                 if (translationCachedResult != null) {
                     englishText = translationCachedResult;
                 } else {
                     // If not cached, use the translation api
-
-                    switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
-                        case "microsoft": {
-                            // Use Microsoft Translator
-                            englishText = translateAPI.translate(strip_original, "", "en");
-                            // Update the lang based on the translation result
-                            if (englishText.equals(strip_original)) {
-                                lang = "en";
-                            }
-
-                            break;
-                        }
-
-                        case "google_free": {
-                            // Use free Google Translator
-                            englishText = translateAPI.translate(strip_original, lang,"en");
-                            break;
-                        }
-
-                        case "google_paid": {
-                            // Use Google Translator
-                            try {
-//                        Translation translation =
-//                                translateAPI.translate(
-//                                        strip_original,
-//                                        Translate.TranslateOption.sourceLanguage(lang),
-//                                        Translate.TranslateOption.targetLanguage("en"));
-//                        englishText = translation.getTranslatedText();
-                            } catch (TranslateException exception) {
-                                logger.error("Google Transalation API unavailable");
-                            }
-                            break;
-                        }
+                    englishText = translateAPI.translate(strip_original, lang, "en");
+                    if (englishText.equals(strip_original)) {
+                        lang = "en";
                     }
 
                     // Synchronize the put operation
-                    synchronized (translationLock) {
-                        translationCache.put(strip_original, englishText);
-                    }
+                    ProcessBatchImageRunnable.translationCache.put(strip_original, englishText);
 
-                    // Add this to
+                    // Add this to counter
                     addToChartoTranslateCounter(strip_original.length());
                 }
             }

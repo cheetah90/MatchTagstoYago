@@ -7,7 +7,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.Properties;
 
-public class MicrosoftTranslatorAPI {
+public class MicrosoftTranslatorAPI implements Translator {
     private static final Logger logger = LogManager.getLogger(MicrosoftTranslatorAPI.class);
 
     private String baseURL = "https://api.microsofttranslator.com/V2/Http.svc/";

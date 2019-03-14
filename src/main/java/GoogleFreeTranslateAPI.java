@@ -9,7 +9,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 
-public class GoogleFreeTranslateAPI {
+public class GoogleFreeTranslateAPI implements Translator {
     private static final Logger logger = LogManager.getLogger(GoogleFreeTranslateAPI.class);
 
     private String baseURL = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=";
@@ -22,7 +22,7 @@ public class GoogleFreeTranslateAPI {
 
         //Send HTTP Request
         URLConnection connection = new URL(requestURL).openConnection();
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 Chrome/23.0.1271.95 Safari/537.11 " + (int)(Math.random()*100000));
         connection.setRequestProperty("Accept-Charset", charset);
         InputStream response = connection.getInputStream();
 
@@ -43,8 +43,6 @@ public class GoogleFreeTranslateAPI {
         String strResult;
         try {
             requestURL = baseURL + sourceLang + "&tl=" + targetLang + "&dt=t&q=" + URLEncoder.encode(textInOriginalLang, charset);
-
-
 
             // Parse the response
             String strResponse = getResponse(requestURL);
