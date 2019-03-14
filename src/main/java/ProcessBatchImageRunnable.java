@@ -340,7 +340,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         for (String current_category: commonsCategories) {
             //Split the category with slash e.g.  Football kit body/Nike specific patterns. Only use the first half
-            if (current_category.contains("/")) {
+            if (current_category.contains("/") && current_category.length() > 1) {
                 additional_category.add(current_category.split("/")[0]);
                 continue;
             }
@@ -482,9 +482,11 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Translate the text if not in English
             if (! lang.equals("en")) {
+                logger.info("Needs translation: " + original_text);
+
                 String translationCachedResult;
 
-                // Synchronized the get operation
+                // get from cache
                 translationCachedResult = ProcessBatchImageRunnable.translationCache.get(strip_original);
 
                 // If the orginal text has been cached
@@ -775,7 +777,6 @@ public class ProcessBatchImageRunnable implements Runnable {
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
                 // threadsafe increment the started Counter
                 incrementStartedCounter();
-                logger.info("Start processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
 
                 // If failed to parse JSON for this object, skip but increment the failure counter
                 if (commonsMetadata.getOriginalTitle() == null) {
@@ -870,7 +871,9 @@ public class ProcessBatchImageRunnable implements Runnable {
                     incrementValidPhotoCounter();
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
-
+                    if (startedCounter % 10000 == 0) {
+                        logger.info("Finished processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
+                    }
                 } finally {
                     ProcessBatchImageRunnable.incrementCompletedCounter();
                 }
