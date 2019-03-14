@@ -152,7 +152,7 @@ public class MediaWikiCommonsAPI {
                     num_continuous_failures = 0;
                     // The MediaWiki server might have detected us! Let's sleep for a while
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException interruptedEx) {
                         interruptedEx.printStackTrace();
                     }
