@@ -18,13 +18,6 @@ public class MediaWikiCommonsAPI {
     private static final Object lockFailureCounter = new Object();
 
     public class CommonsMetadata {
-        public CommonsMetadata(String title, List<String> categories, String description, int pageID){
-            this.title = title;
-            this.categories = categories;
-            this.description = description;
-            this.pageID = pageID;
-            this.originalTitle = title;
-        }
 
         public CommonsMetadata() {}
 
@@ -74,8 +67,8 @@ public class MediaWikiCommonsAPI {
     }
 
 
-    private String baseURL = "https://commons.wikimedia.org/w/api.php?action=query&titles=";
-    private String charset = "UTF-8";
+    private static String baseURL = "https://commons.wikimedia.org/w/api.php?action=query&titles=";
+    private static String charset = "UTF-8";
 
     public MediaWikiCommonsAPI(){ }
 
@@ -93,7 +86,7 @@ public class MediaWikiCommonsAPI {
         return redirectImages;
     }
 
-    public List<String> getParentCategories(String category) {
+    public static synchronized List<String> getParentCategories(String category) {
         List<String> parentCategories = new ArrayList<>();
 
         String requestURL = null;

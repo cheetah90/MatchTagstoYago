@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utils.NLPUtils;
 
+import javax.print.attribute.standard.Media;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
@@ -680,7 +681,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                             parentCategories = cachedParentCategories.get(category);
                         } else {
                             // If not found, query the WM API and save the results
-                            parentCategories = mediaWikiCommonsAPI.getParentCategories(category);
+                            parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
                             parentCategories = preprocessCommonsCategories(parentCategories);
                             cachedParentCategories.put(category, parentCategories);
                         }
