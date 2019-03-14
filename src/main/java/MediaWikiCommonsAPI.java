@@ -165,11 +165,16 @@ public class MediaWikiCommonsAPI {
 
             // parse this line and set metadata properties
             String[] aImgCatsContent = aImgCats.split("\t");
-            metadata.setPageID(Integer.parseInt(aImgCatsContent[0]));
-            metadata.setTitle(aImgCatsContent[1]);
-            metadata.setOriginalTitle(aImgCatsContent[1]);
-            metadata.setCategories(Arrays.asList(aImgCatsContent[2].split("<>")));
-            metadata.setDescription("");    // set empty descriptions
+            if (aImgCatsContent.length == 3) {
+                metadata.setPageID(Integer.parseInt(aImgCatsContent[0]));
+                metadata.setTitle(aImgCatsContent[1]);
+                metadata.setOriginalTitle(aImgCatsContent[1]);
+                metadata.setCategories(Arrays.asList(aImgCatsContent[2].split("<>")));
+                metadata.setDescription("");    // set empty descriptions
+            } else {
+                logger.error("Error: can't parse this line: " + aImgCats);
+            }
+
 
             // add to the output
             commonsMetadata_array.add(metadata);
