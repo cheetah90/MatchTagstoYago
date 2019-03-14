@@ -19,3 +19,4 @@ log4j2.xml
 
 # ignore the image_names.txt
 image_names.txt
+image_names.txt.bak

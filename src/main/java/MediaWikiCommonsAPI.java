@@ -66,8 +66,6 @@ public class MediaWikiCommonsAPI {
 
         private String title;
 
-
-
         private String originalTitle;
         private List<String> categories;
         private String description;
