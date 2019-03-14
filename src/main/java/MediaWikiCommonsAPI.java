@@ -97,6 +97,7 @@ public class MediaWikiCommonsAPI {
         List<String> parentCategories = new ArrayList<>();
 
         String requestURL = null;
+        
 
         try{
             requestURL = baseURL + "Category:"+ URLEncoder.encode(category, charset) + "&prop=categories&format=json&redirects";
