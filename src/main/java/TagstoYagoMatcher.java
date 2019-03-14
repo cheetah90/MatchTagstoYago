@@ -6,6 +6,7 @@ import utils.Theme;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -84,6 +85,9 @@ public class TagstoYagoMatcher {
         }
 
         logger.info("Finish loading Yago data...");
+
+        // Initialize the cache for category - parent category mapping
+        ProcessBatchImageRunnable.setcachedParentCategories(new ConcurrentHashMap<>());
 
     }
 

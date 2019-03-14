@@ -21,6 +21,7 @@ import utils.NLPUtils;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProcessBatchImageRunnable implements Runnable {
     /**
@@ -45,6 +46,10 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     public static void setYagoOriginal2Type(HashMap<String, HashSet<String>> yagoOriginal2Type) {
         ProcessBatchImageRunnable.yagoOriginal2Type = yagoOriginal2Type;
+    }
+
+    public static void setcachedParentCategories(ConcurrentHashMap<String, List<String>> cachedParentCategories) {
+        ProcessBatchImageRunnable.cachedParentCategories = cachedParentCategories;
     }
 
     public static int getCompletedCounter() {
@@ -104,6 +109,8 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static HashMap<String, HashSet<String>> yagoLowercase2Original;
 
     private static HashMap<String, HashSet<String>> yagoOriginal2Type;
+
+    private static ConcurrentHashMap<String, List<String>> cachedParentCategories;
 
     private static final Logger logger = LogManager.getLogger(ProcessBatchImageRunnable.class);
 
@@ -537,7 +544,7 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
     private String matchNounPhraseTranslation2Yago (TranslationResults translationResults) {
-        String yago_match = null;
+        String yago_match;
 
         // To deal with foreign proper noun, direct match lang_code + original_text
         if (!translationResults.getLang().equals("en")) {
@@ -627,16 +634,15 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     /**
      * Match all the categories
-     * @param commonsMetadata
-     * @param allYagoEntities
-     * @param allMatchingResults
-     * @param allOriginalCategories
+     * @param commonsMetadata SE
+     * @param allYagoEntities SE
+     * @param allMatchingResults SE
+     * @param allOriginalCategories Se
      */
     private void matchAllCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                     Set<String> allYagoEntities,
                                     List<String> allMatchingResults,
-                                    List<String> allOriginalCategories,
-                                    boolean searchParents){
+                                    List<String> allOriginalCategories){
         long startTime;
         long endTime;
         String yago_match;
@@ -668,32 +674,38 @@ public class ProcessBatchImageRunnable implements Runnable {
                         }
                     } else {
                         //Search parent categories
-                        List<String> parentCategories = mediaWikiCommonsAPI.getParentCategories(category);
-                        parentCategories = preprocessCommonsCategories(parentCategories);
+                        List<String> parentCategories;
+                        if (cachedParentCategories.get(category) != null) {
+                            // First search in the cache
+                            parentCategories = cachedParentCategories.get(category);
+                        } else {
+                            // If not found, query the WM API and save the results
+                            parentCategories = mediaWikiCommonsAPI.getParentCategories(category);
+                            parentCategories = preprocessCommonsCategories(parentCategories);
+                            cachedParentCategories.put(category, parentCategories);
+                        }
+
                         List<String> parentMatchingResults = new ArrayList<>();
 
-
                         for (String parentCategory: parentCategories) {
-                            if (category != null && !category.isEmpty()) {
-                                // Translate
-                                translationResults = translateToEnglish(parentCategory);
+                            // Translate
+                            translationResults = translateToEnglish(parentCategory);
 
-                                // Match normally
-                                yago_match = matchNounPhraseTranslation2Yago(translationResults);
+                            // Match normally
+                            yago_match = matchNounPhraseTranslation2Yago(translationResults);
 
-                                // Print results
-                                if (yago_match != null) {
+                            // Print results
+                            if (yago_match != null) {
 
-                                    //prepare data to print to per_img txt
-                                    if (!allYagoEntities.contains(yago_match)){
-                                        // print to per_tag txt
-                                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
+                                //prepare data to print to per_img txt
+                                if (!allYagoEntities.contains(yago_match)){
+                                    // print to per_tag txt
+                                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
 
-                                        // add the categories to yago_match
-                                        allYagoEntities.add(yago_match);
+                                    // add the categories to yago_match
+                                    allYagoEntities.add(yago_match);
 
-                                        parentMatchingResults.add(yago_match);
-                                    }
+                                    parentMatchingResults.add(yago_match);
                                 }
                             }
                         }
@@ -825,14 +837,14 @@ public class ProcessBatchImageRunnable implements Runnable {
                     time_preprocessCommonsMetadata.addValue((endTime - startTime));
 
                     Set<String> allYagoEntities = new HashSet<>();
-                    String yago_match = null;
+                    String yago_match;
 
                     //Record the matching_results
                     List<String> allMatchingResults = new ArrayList<>();
                     List<String> allOriginalCategories = new ArrayList<>();
 
                     // Match all categories
-                    matchAllCategories(commonsMetadata, allYagoEntities, allMatchingResults, allOriginalCategories, true);
+                    matchAllCategories(commonsMetadata, allYagoEntities, allMatchingResults, allOriginalCategories);
 
 
                     // If needed, match descriptions
