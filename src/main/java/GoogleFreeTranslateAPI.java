@@ -49,7 +49,7 @@ public class GoogleFreeTranslateAPI implements Translator {
             int startPosition = 4;
             int endPosition = strResponse.indexOf(textInOriginalLang);
             strResult = strResponse.substring(startPosition, endPosition-3);
-
+            logger.error("Finished: free Google API finished requesting: " + requestURL );
 
         } catch (IOException exception) {
             logger.error("Error: free Google API failed on requesting: " + requestURL );

@@ -75,6 +75,7 @@ public class MicrosoftTranslatorAPI implements Translator {
             int startPosition = sentinel.length();
             int endPosition = strResponse.indexOf("</string>");
             strResult = strResponse.substring(startPosition, endPosition);
+            logger.error("Finished: Paid Microsoft API finished requesting: " + requestURL );
 
         } catch (IOException exception) {
             logger.error("Error: Microsoft Translator API failed on requesting: " + requestURL );
