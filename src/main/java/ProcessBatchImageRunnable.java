@@ -83,8 +83,6 @@ public class ProcessBatchImageRunnable implements Runnable {
         PanoramioCounter++;
     }
 
-    private synchronized static void incrementNonPhotoCounter() { nonPhotoCounter++;}
-
     private synchronized static void incrementValidPhotoCounter() {validPhotoCounter++;}
 
     private synchronized static void addToChartoTranslateCounter(long numOfCharToAdd) {ChartoTranslateCounter += numOfCharToAdd;}
@@ -96,8 +94,6 @@ public class ProcessBatchImageRunnable implements Runnable {
     public static int getPanoramioCounter(){
         return PanoramioCounter;
     }
-
-    public static int getNonPhotoCounter() {return nonPhotoCounter; }
 
     public static int getValidPhotoCounter() {return validPhotoCounter;}
 
@@ -122,8 +118,6 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static int completedCounter = 0;
 
     private static int startedCounter = 0;
-
-    private static int nonPhotoCounter = 0;
 
     private static int validPhotoCounter = 0;
 
@@ -463,7 +457,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
 
 
-        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true") && strip_original.length() < 40){
             // Initialize the translator api
             switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
                 case "microsoft": {
@@ -808,12 +802,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                 String original_title = commonsMetadata.getTitle();
 
                 try {
-
-                    // Skip non photo file
-                    if (isNotImages(original_title)) {
-                        incrementNonPhotoCounter();
-                        continue;
-                    }
 
                     // Flag for flickr and panoramio counter
                     isFlickr = false;

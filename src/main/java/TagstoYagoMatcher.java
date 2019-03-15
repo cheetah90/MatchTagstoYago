@@ -361,7 +361,6 @@ public class TagstoYagoMatcher {
         logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
         logger.info("# of Panoramio images:" + ProcessBatchImageRunnable.getPanoramioCounter());
         logger.info("# of images failured on MediaWikiAPI: " + ProcessBatchImageRunnable.getFailedImageCounter());
-        logger.info("# of non image files: " + ProcessBatchImageRunnable.getNonPhotoCounter());
         logger.info("# of valid images: " + ProcessBatchImageRunnable.getValidPhotoCounter());
         logger.info("# of characters to translate: " + ProcessBatchImageRunnable.ChartoTranslateCounter);
 
