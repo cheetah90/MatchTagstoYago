@@ -441,7 +441,7 @@ public class ProcessBatchImageRunnable implements Runnable {
         return langCode.equals("an") || langCode.equals("ast") || langCode.equals("br");
     }
 
-    private boolean needTranslation(String strip_original) {
+    private boolean lotsOfForeignWords(String strip_original) {
         String [] tokens = strip_original.toLowerCase().replaceAll("\\p{Punct}", "").split(" ");
         int numEnglishToken = 0;
 
@@ -481,7 +481,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
 
                 // Only translate if all tokens are in foreign languages.
-                if (needTranslation(strip_original)) {
+                if (lotsOfForeignWords(strip_original)) {
                     TextObject textObject = textObjectFactory.forText(strip_original);
                     Optional<LdLocale> langOptional = languageDetector.detect(textObject);
                     lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
