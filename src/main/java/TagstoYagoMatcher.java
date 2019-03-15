@@ -86,6 +86,21 @@ public class TagstoYagoMatcher {
 
         logger.info("Finish loading Yago data...");
 
+        // load the linux words
+        HashSet<String> linuxWords = new HashSet<>();
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("data/linux.words"));
+            String line;
+            while ((line = bufferedReader.readLine()) != null)
+            {
+                linuxWords.add(line);
+            }
+
+            ProcessBatchImageRunnable.setlinuxEnglishWord(linuxWords);
+        } catch (IOException e) {
+        }
+
+
         // Initialize the cache for category - parent category mapping
         ProcessBatchImageRunnable.setcachedParentCategories(new ConcurrentHashMap<>());
 

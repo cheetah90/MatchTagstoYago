@@ -51,6 +51,10 @@ public class ProcessBatchImageRunnable implements Runnable {
         ProcessBatchImageRunnable.cachedParentCategories = cachedParentCategories;
     }
 
+    public static void setlinuxEnglishWord(HashSet<String> linuxEnglishWord) {
+        ProcessBatchImageRunnable.linuxEnglishWord = linuxEnglishWord;
+    }
+
     public static int getCompletedCounter() {
         return completedCounter;
     }
@@ -110,6 +114,8 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static HashMap<String, HashSet<String>> yagoOriginal2Type;
 
     private static ConcurrentHashMap<String, List<String>> cachedParentCategories;
+
+    private static HashSet<String> linuxEnglishWord;
 
     private static final Logger logger = LogManager.getLogger(ProcessBatchImageRunnable.class);
 
@@ -435,12 +441,27 @@ public class ProcessBatchImageRunnable implements Runnable {
         return langCode.equals("an") || langCode.equals("ast") || langCode.equals("br");
     }
 
+    private boolean needTranslation(String strip_original) {
+        String [] tokens = strip_original.toLowerCase().replaceAll("\\p{Punct}", "").split(" ");
+        int numEnglishToken = 0;
+
+        for (String token: tokens) {
+            if (ProcessBatchImageRunnable.linuxEnglishWord.contains(token)) {
+                numEnglishToken++;
+            }
+        }
+
+        return (numEnglishToken < (tokens.length / 2));
+    }
+
     private TranslationResults translateToEnglish(String original_text){
         String strip_original = FactComponent.stripCat(original_text).trim();
 
         String englishText = original_text;
 
         String lang = "en";
+
+
 
         if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
             // Initialize the translator api
@@ -458,20 +479,22 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Use local language detector
             if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
-                // Synchronized this block since it uses static methods and variables
-                synchronized (translationLock) {
+
+                // Only translate if all tokens are in foreign languages.
+                if (needTranslation(strip_original)) {
                     TextObject textObject = textObjectFactory.forText(strip_original);
                     Optional<LdLocale> langOptional = languageDetector.detect(textObject);
                     lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+
+                    // translate oc to fr
+                    lang = lang.equals("oc")?"fr":lang;
+
+                    // translate br to en
+                    if (needHardCodetoEN(lang)) {
+                        lang = "en";
+                    }
                 }
 
-                // translate oc to fr
-                lang = lang.equals("oc")?"fr":lang;
-
-                // translate br to en
-                if (needHardCodetoEN(lang)) {
-                    lang = "en";
-                }
             } else {
                 try {
                     lang = translateAPI.detect(strip_original);
