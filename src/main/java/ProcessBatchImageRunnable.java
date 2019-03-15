@@ -757,8 +757,6 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
 
-
-
     public void run() {
         long startTime_batch = System.currentTimeMillis();
 

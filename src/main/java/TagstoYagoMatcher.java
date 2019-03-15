@@ -266,17 +266,6 @@ public class TagstoYagoMatcher {
 
     }
 
-    private boolean waitTooLong(){
-        if ((lastCounter == secondLastCounter) && (lastCounter == ProcessBatchImageRunnable.getCompletedCounter())) {
-            return true;
-        } else {
-            secondLastCounter = lastCounter;
-            lastCounter = ProcessBatchImageRunnable.getCompletedCounter();
-            return false;
-        }
-    }
-
-
     private void startWorking(){
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
