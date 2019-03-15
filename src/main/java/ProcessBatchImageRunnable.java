@@ -455,8 +455,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         String lang = "en";
 
-
-
         if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
             // Initialize the translator api
             switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
@@ -655,6 +653,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                             // print to per_tag txt
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
 
+
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
                         }
@@ -701,9 +700,9 @@ public class ProcessBatchImageRunnable implements Runnable {
                         } else {
                             allMatchingResults.add("<>");
                         }
-
-
                     }
+
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match, "./output_cat2yago.tsv");
                 }
             } catch (Exception exception) {
                 logger.error("Error when parsing file: " + commonsMetadata.getOriginalTitle());
@@ -781,12 +780,6 @@ public class ProcessBatchImageRunnable implements Runnable {
             long startTime;
             long endTime;
 
-            // Retrieve all the metadata
-//            startTime = System.currentTimeMillis();
-//            List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadata(this.originalImgCatsArray);
-//            endTime = System.currentTimeMillis();
-//            time_mediaWikipeida.addValue((endTime - startTime));
-
             List<MediaWikiCommonsAPI.CommonsMetadata> commonsMetadataList = mediaWikiCommonsAPI.createMetadataFromDump(this.originalImgCatsArray);
 
             for (MediaWikiCommonsAPI.CommonsMetadata commonsMetadata: commonsMetadataList) {
@@ -831,7 +824,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
 
                     // Save categories info
-                    // print to ground truth txt
 //                    String contentMatchingResults = String.join(", ", allMatchingResults);
 //                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
 //                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
@@ -847,11 +839,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                                 ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(proper_title);
 
                                 // Match normally
-                                // Using the title2class routine
-                                // pro e.g.:
-                                //      https://commons.wikimedia.org/wiki/File:ArtAndFeminism_2017-Puerto_Rico25.jpg
-                                //      https://commons.wikimedia.org/wiki/File:Young_swan_alone_115810909.jpg
-                                // con e.g.:
                                 yago_match = this.matchCategory.title2class(translationResults.getTranslatedText());
 
                                 if (yago_match != null) {
