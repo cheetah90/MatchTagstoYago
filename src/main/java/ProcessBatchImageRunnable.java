@@ -457,7 +457,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
 
 
-        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true") && strip_original.length() < 40){
+        if (TagstoYagoMatcher.getPROPERTIES().getProperty("useTranslator").equals("true")){
             // Initialize the translator api
             switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
                 case "microsoft": {
@@ -499,7 +499,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Translate the text if not in English
             if (! lang.equals("en")) {
-                logger.info("Needs translation: " + original_text);
+                logger.info("Need translation:" + original_text);
 
                 String translationCachedResult;
 
