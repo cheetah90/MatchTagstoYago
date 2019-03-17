@@ -330,12 +330,12 @@ public class MatchCategory {
         }
 
         // If so far nothing is matched and there are only two words, try to match the non-trivial premodifier
-        if (lower_category.toString().split(" ").length == 2 &&
-                (lower_category.preModifier() != null) &&
-                lower_category.preModifier().length() > 5) {
-            yagoitem = directMatch(lower_category.preModifier());
-            if (isValidYagoItem(yagoitem, original_categoryName) && containsWithoutCapitalization(yagoitem, original_categoryName)) {return yagoitem;}
-        }
+//        if (lower_category.toString().split(" ").length == 2 &&
+//                (lower_category.preModifier() != null) &&
+//                lower_category.preModifier().length() > 5) {
+//            yagoitem = directMatch(lower_category.preModifier());
+//            if (isValidYagoItem(yagoitem, original_categoryName) && containsWithoutCapitalization(yagoitem, original_categoryName)) {return yagoitem;}
+//        }
 
         return (null);
     }
@@ -385,7 +385,6 @@ public class MatchCategory {
 
         // If it contains parenthesis, first match things outside parenthesis
         if (original_categoryName.contains("(")){
-            // Check if it contains parenthesis. If yes, match the string without parenthesis directly first
             yagoitem = matchWithoutParenthesis(original_categoryName);
             if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
         }
