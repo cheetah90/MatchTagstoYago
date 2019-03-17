@@ -709,7 +709,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                         appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + parentMatchingResults, "./output_cat2yago.tsv");
 
                     } else {
-                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match, "./output_cat2yago.tsv");
+                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match.replaceAll("<","").replaceAll(">",""), "./output_cat2yago.tsv");
                     }
 
                 }
