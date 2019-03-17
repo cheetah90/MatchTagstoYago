@@ -659,6 +659,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
+
                         //Search parent categories
                         List<String> parentCategories;
                         if (cachedParentCategories.get(category) != null) {
@@ -671,9 +672,9 @@ public class ProcessBatchImageRunnable implements Runnable {
                             cachedParentCategories.put(category, parentCategories);
                         }
 
+                        // Match these parent categories
+                        parentMatchingResults = new ArrayList<>();
                         for (String parentCategory: parentCategories) {
-                            parentMatchingResults = new ArrayList<>();
-
                             // Translate
                             translationResults = translateToEnglish(parentCategory);
 
