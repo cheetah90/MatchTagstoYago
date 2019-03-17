@@ -616,12 +616,68 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
 
+    private void matchParentCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
+                                       Set<String> allYagoEntities,
+                                       List<String> allMatchingResults,
+                                       String category){
+        List<String> parentMatchingResults = new ArrayList<>();
+        String yago_match;
+
+        //Search parent categories
+        List<String> parentCategories;
+        if (cachedParentCategories.get(category) != null) {
+            // First search in the cache
+            parentCategories = cachedParentCategories.get(category);
+        } else {
+            // If not found, query the WM API and save the results
+            parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
+            parentCategories = preprocessCommonsCategories(parentCategories);
+            cachedParentCategories.put(category, parentCategories);
+        }
+
+        ProcessBatchImageRunnable.TranslationResults translationResults;
+
+        // Match these parent categories
+        for (String parentCategory: parentCategories) {
+            // Translate
+            translationResults = translateToEnglish(parentCategory);
+
+            // Match normally
+            yago_match = matchNounPhraseTranslation2Yago(translationResults);
+
+            // Print results
+            if (yago_match != null) {
+
+                //prepare data to print to per_img txt
+                if (!allYagoEntities.contains(yago_match)){
+                    // print to per_tag txt
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
+
+                    // add the categories to yago_match
+                    allYagoEntities.add(yago_match);
+
+                    parentMatchingResults.add(yago_match);
+                }
+            }
+        }
+
+        //  This block of code is only for evlauation purpose. Shouldn't be used in production
+        if (!parentMatchingResults.isEmpty()) {
+            String parentMatchingResultsToOutput = parentMatchingResults.toString().replace("<","{").replace(">","}");
+            allMatchingResults.add("<" + parentMatchingResultsToOutput + ">");
+            appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + parentMatchingResultsToOutput, "./output_cat2yago.tsv");
+        } else {
+            allMatchingResults.add("<>");
+        }
+    }
+
+
     /**
      * Match all the categories
-     * @param commonsMetadata SE
-     * @param allYagoEntities SE
-     * @param allMatchingResults SE
-     * @param allOriginalCategories Se
+     * @param commonsMetadata The Commons Metadata, which includes the categories and descriptions and title of this images
+     * @param allYagoEntities All the matched yago entities, to be output to output_per_img.txt
+     * @param allMatchingResults All the matched yago entities for categories, only for producing groundtruth data for coding
+     * @param allOriginalCategories The original categories that are matched, only for producing groundtruth data for coding
      */
     private void matchAllCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                     Set<String> allYagoEntities,
@@ -636,8 +692,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             startTime = System.currentTimeMillis();
             try {
                 if (category != null && !category.isEmpty()) {
-                    List<String> parentMatchingResults = null;
-                    String yago_match = null;
+                    String yago_match;
 
 
                     // Translate
@@ -651,6 +706,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                         //prepare data to print to per_img txt
                         allMatchingResults.add(yago_match);
+                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match.replaceAll("<","").replaceAll(">",""), "./output_cat2yago.tsv");
                         if (!allYagoEntities.contains(yago_match)){
                             // print to per_tag txt
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
@@ -659,59 +715,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-
-                        //Search parent categories
-                        List<String> parentCategories;
-                        if (cachedParentCategories.get(category) != null) {
-                            // First search in the cache
-                            parentCategories = cachedParentCategories.get(category);
-                        } else {
-                            // If not found, query the WM API and save the results
-                            parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
-                            parentCategories = preprocessCommonsCategories(parentCategories);
-                            cachedParentCategories.put(category, parentCategories);
-                        }
-
-                        // Match these parent categories
-                        parentMatchingResults = new ArrayList<>();
-                        for (String parentCategory: parentCategories) {
-                            // Translate
-                            translationResults = translateToEnglish(parentCategory);
-
-                            // Match normally
-                            yago_match = matchNounPhraseTranslation2Yago(translationResults);
-
-                            // Print results
-                            if (yago_match != null) {
-
-                                //prepare data to print to per_img txt
-                                if (!allYagoEntities.contains(yago_match)){
-                                    // print to per_tag txt
-                                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
-
-                                    // add the categories to yago_match
-                                    allYagoEntities.add(yago_match);
-
-                                    parentMatchingResults.add(yago_match);
-                                }
-                            }
-                        }
+                        matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
                     }
-
-                    // Means yago is null and we searched
-                    if (parentMatchingResults != null) {
-                        if (!parentMatchingResults.isEmpty()) {
-                            allMatchingResults.add("<"+parentMatchingResults.toString().replace("<","{").replace(">","}")+">");
-                        } else {
-                            allMatchingResults.add("<>");
-                        }
-
-                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + parentMatchingResults, "./output_cat2yago.tsv");
-
-                    } else {
-                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match.replaceAll("<","").replaceAll(">",""), "./output_cat2yago.tsv");
-                    }
-
                 }
 
             } catch (Exception exception) {

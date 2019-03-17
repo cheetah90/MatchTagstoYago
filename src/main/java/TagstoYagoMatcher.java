@@ -142,15 +142,7 @@ public class TagstoYagoMatcher {
                         hashSet.add(strip_subject);
                         yagoLowercase2Original.put(strip_subject.toLowerCase(), hashSet);
                     } else {
-                        // if this foreign entity exist in en.wiki, add it with the lang code
-                        if (yagoLowercase2Original.get(subject.toLowerCase()) == null) {
-                            // the lowercase does not exist
-                            HashSet<String> hashSet = new HashSet<>();
-                            hashSet.add(subject);
-                            yagoLowercase2Original.put(subject.toLowerCase(), hashSet);
-                        } else {
-                            yagoLowercase2Original.get(subject.toLowerCase()).add(subject);
-                        }
+                        yagoLowercase2Original.get(strip_subject.toLowerCase()).add(strip_subject);
                     }
 
                     // Then add to yagoOriginal2Type
@@ -160,14 +152,7 @@ public class TagstoYagoMatcher {
                         hashSet.add(object);
                         yagoOriginal2Type.put(strip_subject, hashSet);
                     } else {
-                        if (yagoOriginal2Type.get(subject) == null) {
-                            // the lowercase does not exist
-                            HashSet<String> hashSet = new HashSet<>();
-                            hashSet.add(object);
-                            yagoOriginal2Type.put(subject, hashSet);
-                        } else {
-                            yagoOriginal2Type.get(subject).add(object);
-                        }
+                        yagoOriginal2Type.get(strip_subject).add(object);
                     }
                 }
             } else {
