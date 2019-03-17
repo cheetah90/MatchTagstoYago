@@ -616,12 +616,13 @@ public class ProcessBatchImageRunnable implements Runnable {
     }
 
 
-    private void matchParentCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
+    private String matchParentCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                        Set<String> allYagoEntities,
                                        List<String> allMatchingResults,
                                        String category){
         List<String> parentMatchingResults = new ArrayList<>();
         String yago_match;
+        String parentMatchingResultsToOutput = "";
 
         //Search parent categories
         List<String> parentCategories;
@@ -663,12 +664,13 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         //  This block of code is only for evlauation purpose. Shouldn't be used in production
         if (!parentMatchingResults.isEmpty()) {
-            String parentMatchingResultsToOutput = parentMatchingResults.toString().replace("<","{").replace(">","}");
+            parentMatchingResultsToOutput = parentMatchingResults.toString().replace("<","{").replace(">","}");
             allMatchingResults.add("<" + parentMatchingResultsToOutput + ">");
-            appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + parentMatchingResultsToOutput, "./output_cat2yago.tsv");
         } else {
             allMatchingResults.add("<>");
         }
+
+        return parentMatchingResultsToOutput;
     }
 
 
@@ -688,12 +690,12 @@ public class ProcessBatchImageRunnable implements Runnable {
 
         //Parse the Categories
         for (String category: commonsMetadata.getCategories()) {
-            allOriginalCategories.add("<"+category+">");
             startTime = System.currentTimeMillis();
             try {
                 if (category != null && !category.isEmpty()) {
+                    allOriginalCategories.add("<"+category+">");
+                    String matchingResults;
                     String yago_match;
-
 
                     // Translate
                     ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(category);
@@ -706,7 +708,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                         //prepare data to print to per_img txt
                         allMatchingResults.add(yago_match);
-                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match.replaceAll("<","").replaceAll(">",""), "./output_cat2yago.tsv");
+                        matchingResults = yago_match.replaceAll("<","").replaceAll(">","");
                         if (!allYagoEntities.contains(yago_match)){
                             // print to per_tag txt
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
@@ -715,8 +717,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-                        matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
+                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
                     }
+
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
                 }
 
             } catch (Exception exception) {
