@@ -629,8 +629,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                                     List<String> allOriginalCategories){
         long startTime;
         long endTime;
-        String yago_match;
-
 
         //Parse the Categories
         for (String category: commonsMetadata.getCategories()) {
@@ -638,6 +636,10 @@ public class ProcessBatchImageRunnable implements Runnable {
             startTime = System.currentTimeMillis();
             try {
                 if (category != null && !category.isEmpty()) {
+                    List<String> parentMatchingResults = null;
+                    String yago_match = null;
+
+
                     // Translate
                     ProcessBatchImageRunnable.TranslationResults translationResults = translateToEnglish(category);
 
@@ -652,7 +654,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                         if (!allYagoEntities.contains(yago_match)){
                             // print to per_tag txt
                             appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + yago_match, "./output_per_tag.tsv");
-
 
                             // add the categories to yago_match
                             allYagoEntities.add(yago_match);
@@ -670,9 +671,9 @@ public class ProcessBatchImageRunnable implements Runnable {
                             cachedParentCategories.put(category, parentCategories);
                         }
 
-                        List<String> parentMatchingResults = new ArrayList<>();
-
                         for (String parentCategory: parentCategories) {
+                            parentMatchingResults = new ArrayList<>();
+
                             // Translate
                             translationResults = translateToEnglish(parentCategory);
 
@@ -694,16 +695,23 @@ public class ProcessBatchImageRunnable implements Runnable {
                                 }
                             }
                         }
+                    }
 
+                    // Means yago is null and we searched
+                    if (parentMatchingResults != null) {
                         if (!parentMatchingResults.isEmpty()) {
                             allMatchingResults.add("<"+parentMatchingResults.toString().replace("<","{").replace(">","}")+">");
                         } else {
                             allMatchingResults.add("<>");
                         }
-                    }
 
-                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match, "./output_cat2yago.tsv");
+                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + allMatchingResults, "./output_cat2yago.tsv");
+
+                    } else {
+                        appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + yago_match, "./output_cat2yago.tsv");
+                    }
                 }
+
             } catch (Exception exception) {
                 logger.error("Error when parsing file: " + commonsMetadata.getOriginalTitle());
                 logger.error("Error when parsing category: " + category);
