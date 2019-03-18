@@ -18,6 +18,9 @@ output_cat2yago.tsv
 config.properties
 log4j2.xml
 
+CachedParentCategories.ser
+translationCache.ser
+
 # ignore the image_names.txt
 image_names.txt
 image_names.txt.bak

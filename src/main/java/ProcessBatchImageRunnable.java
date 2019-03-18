@@ -51,6 +51,18 @@ public class ProcessBatchImageRunnable implements Runnable {
         ProcessBatchImageRunnable.cachedParentCategories = cachedParentCategories;
     }
 
+    public static void setCachedTranslation(ConcurrentHashMap<String, String> cachedTranslation){
+        ProcessBatchImageRunnable.cachedTranslation = cachedTranslation;
+    }
+
+    public static ConcurrentHashMap<String, List<String>> getCachedParentCategories(){
+        return ProcessBatchImageRunnable.cachedParentCategories;
+    }
+
+    public static ConcurrentHashMap<String, String> getCachedTranslation(){
+        return ProcessBatchImageRunnable.cachedTranslation;
+    }
+
     public static void setlinuxEnglishWord(HashSet<String> linuxEnglishWord) {
         ProcessBatchImageRunnable.linuxEnglishWord = linuxEnglishWord;
     }
@@ -111,6 +123,8 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private static ConcurrentHashMap<String, List<String>> cachedParentCategories;
 
+    private static ConcurrentHashMap<String, String> cachedTranslation;
+
     private static HashSet<String> linuxEnglishWord;
 
     private static final Logger logger = LogManager.getLogger(ProcessBatchImageRunnable.class);
@@ -149,8 +163,6 @@ public class ProcessBatchImageRunnable implements Runnable {
     static final SummaryStatistics time_processOneDescription = new SynchronizedSummaryStatistics();
 
     static final SummaryStatistics time_oneBatch = new SynchronizedSummaryStatistics();
-
-    static final ConcurrentHashMap<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
      * Finish static methods and variables
@@ -502,7 +514,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                 String translationCachedResult;
 
                 // get from cache
-                translationCachedResult = ProcessBatchImageRunnable.translationCache.get(strip_original);
+                translationCachedResult = ProcessBatchImageRunnable.cachedTranslation.get(strip_original);
 
                 // If the orginal text has been cached
                 if (translationCachedResult != null) {
@@ -515,7 +527,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                     }
 
                     // Synchronize the put operation
-                    ProcessBatchImageRunnable.translationCache.put(strip_original, englishText);
+                    ProcessBatchImageRunnable.cachedTranslation.put(strip_original, englishText);
 
                     // Add this to counter
                     addToChartoTranslateCounter(strip_original.length());

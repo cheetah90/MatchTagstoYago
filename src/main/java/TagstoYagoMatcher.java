@@ -22,11 +22,11 @@ public class TagstoYagoMatcher {
 
     private static final Properties PROPERTIES = new Properties();
 
-    // Production setting: 100
-
-    // Production setting: 1000000
-
     private static final Logger logger = LogManager.getLogger(TagstoYagoMatcher.class);
+
+    private static final String TRANSLATIONCACHEFILENAME = "translationCache.ser";
+
+    private static final String PARENTCATSCACHEFILENAME = "CachedParentCategories.ser";
 
     private final static HashMap<String, HashSet<String>> yagoLowercase2Original = new HashMap<>();
 
@@ -35,14 +35,44 @@ public class TagstoYagoMatcher {
     /** Holds the preferred meanings */
     protected Map<String, String> preferredMeanings;
 
-    // Holds the nonconceptual categorie
-//    protected Set<String> nonConceptualCategories = new HashSet<>();
+    private void deserializeCaches(){
+        // deserialize or initialize the cache for category - parent category mapping
+        File f = new File(PARENTCATSCACHEFILENAME);
+        if (f.exists() && !f.isDirectory()) {
+            try {
+                FileInputStream fileIn = new FileInputStream(PARENTCATSCACHEFILENAME);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                ProcessBatchImageRunnable.setcachedParentCategories((ConcurrentHashMap<String, List<String>>) in.readObject());
+                in.close();
+                fileIn.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            } catch (ClassNotFoundException c) {
+                logger.error("Can't read the serializable into cacheParentCategories");
+            }
+        } else {
+            ProcessBatchImageRunnable.setcachedParentCategories(new ConcurrentHashMap<>());
+        }
 
-    // Counters to determine if wait too long
-    int lastCounter = 1;
-    int secondLastCounter = 0;
 
-    MatchCategory matchCategory;
+        f = new File(TRANSLATIONCACHEFILENAME);
+        if (f.exists() && !f.isDirectory()) {
+            try {
+                FileInputStream fileIn = new FileInputStream(TRANSLATIONCACHEFILENAME);
+                ObjectInputStream in = new ObjectInputStream(fileIn);
+                ProcessBatchImageRunnable.setCachedTranslation((ConcurrentHashMap<String, String>) in.readObject());
+                in.close();
+                fileIn.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            } catch (ClassNotFoundException c) {
+                logger.error("Can't read the serializable into cacheParentCategories");
+            }
+        } else {
+            ProcessBatchImageRunnable.setCachedTranslation(new ConcurrentHashMap<>());
+        }
+
+    }
 
     public TagstoYagoMatcher(){
 
@@ -100,9 +130,8 @@ public class TagstoYagoMatcher {
         } catch (IOException e) {
         }
 
-
-        // Initialize the cache for category - parent category mapping
-        ProcessBatchImageRunnable.setcachedParentCategories(new ConcurrentHashMap<>());
+        // deserialize the object
+        deserializeCaches();
 
     }
 
@@ -266,6 +295,19 @@ public class TagstoYagoMatcher {
 
     }
 
+    private void serializeCacheObjects(Object cacheObject, String filename){
+        // save the translationCache to the file since translation cost money
+        try {
+            FileOutputStream fileOut = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(cacheObject);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            logger.error("Serialization of " + filename + "failed!");
+        }
+    }
+
     private void startWorking(){
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
@@ -341,7 +383,11 @@ public class TagstoYagoMatcher {
             logger.error("filenames.txt does not exist!");
             exception.printStackTrace();
         }
-        
+
+        // serialize cache object
+        serializeCacheObjects(ProcessBatchImageRunnable.getCachedTranslation(), "translationCache.ser");
+        serializeCacheObjects(ProcessBatchImageRunnable.getCachedParentCategories(), "CachedParentCategories.ser");
+
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);
         logger.info("# of Flickr images: " + ProcessBatchImageRunnable.getFlickrCounter());
