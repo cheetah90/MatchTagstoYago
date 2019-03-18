@@ -127,6 +127,11 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private static HashSet<String> linuxEnglishWord;
 
+    //TODO: remove after finished pulling the categories that needs parents
+    private static final Object catNeedingParentsLock = new Object();
+
+    private static HashSet<String> catNeedingParents = new HashSet<>();
+
     private static final Logger logger = LogManager.getLogger(ProcessBatchImageRunnable.class);
 
     private static int completedCounter = 0;
@@ -721,7 +726,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
+                        //matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
+                        matchingResults = "";
+                        //Let's record all these categories that need to look for parents
+                        printCatsNeedParents(category);
                     }
 
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
@@ -733,11 +741,19 @@ public class ProcessBatchImageRunnable implements Runnable {
                 logger.error(exception.getStackTrace());
             }
 
-
-
             endTime = System.currentTimeMillis();
             //logger.debug("Execution time to process one category: " + (endTime - startTime));
             time_processOneCategory.addValue((endTime - startTime));
+        }
+    }
+
+    private void printCatsNeedParents(String category) {
+        if (! catNeedingParents.contains(category)) {
+            // If not found, query the WM API and save the results
+            appendLinetoFile(category, "./aux_cat_needs_parents.tsv");
+            synchronized (catNeedingParentsLock) {
+                catNeedingParents.add(category);
+            }
         }
     }
 

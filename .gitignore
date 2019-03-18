@@ -21,6 +21,8 @@ log4j2.xml
 CachedParentCategories.ser
 translationCache.ser
 
+aux_cat_needs_parents.tsv
+
 # ignore the image_names.txt
 image_names.txt
 image_names.txt.bak
