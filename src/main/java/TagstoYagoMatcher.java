@@ -332,7 +332,7 @@ public class TagstoYagoMatcher {
 
             // Read through the file
             while ((a_line = br.readLine()) != null) {
-                // Split by 1m lines
+                // Split by 100k lines
                 if (line_counter % Integer.parseInt(PROPERTIES.getProperty("numImgsInSplit"))== 0) {
                     // if reachings 1m, shutdown the pool, wait until all tasks have completed
                     if (pool != null) {

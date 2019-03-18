@@ -204,12 +204,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private MatchCategory matchCategory;
 
-
-    private static boolean isNotImages(String fileName) {
-        return (fileName.contains(".webm") || fileName.contains(".ogg") || fileName.contains(".mp3") ||
-                fileName.contains(".midi") || fileName.contains(".wave") || fileName.contains(".flac"));
-    }
-
     private static final String[] BLACKLIST_STARTWITH_CATEGORIES = { "commons", "cc-", "pd_", "categories_", "items_with", "attribution_", "gfdl", "pd-", "file_", "files_",
             "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl", "wiki", "glam_", "fop-", "fop_",
             "location_", "executive_office_of_the_president", "with_trademark", "hidden_categories", "godl"
@@ -509,8 +503,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Translate the text if not in English
             if (! lang.equals("en")) {
-                logger.info("Need translation:" + original_text);
-
                 String translationCachedResult;
 
                 // get from cache
@@ -898,8 +890,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                     incrementValidPhotoCounter();
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
 
-                    if (startedCounter % 10000 == 0) {
-                        logger.info("Finished processing " + (startedCounter) + " | title: " + commonsMetadata.getOriginalTitle());
+                    if (startedCounter % 1000 == 0) {
+                        logger.info("Finished processing " + (startedCounter) + " | Current title: " + commonsMetadata.getOriginalTitle());
                     }
                 } finally {
                     ProcessBatchImageRunnable.incrementCompletedCounter();
