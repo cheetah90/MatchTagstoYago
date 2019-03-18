@@ -55,12 +55,12 @@ public class ProcessBatchImageRunnable implements Runnable {
         ProcessBatchImageRunnable.cachedTranslation = cachedTranslation;
     }
 
-    public static ConcurrentHashMap<String, List<String>> getCachedParentCategories(){
-        return ProcessBatchImageRunnable.cachedParentCategories;
-    }
-
     public static ConcurrentHashMap<String, String> getCachedTranslation(){
         return ProcessBatchImageRunnable.cachedTranslation;
+    }
+
+    public static ConcurrentHashMap<String, List<String>> getCachedParentCategories(){
+        return ProcessBatchImageRunnable.cachedParentCategories;
     }
 
     public static void setlinuxEnglishWord(HashSet<String> linuxEnglishWord) {
@@ -638,6 +638,7 @@ public class ProcessBatchImageRunnable implements Runnable {
         if (cachedParentCategories.get(category) != null) {
             // First search in the cache
             parentCategories = cachedParentCategories.get(category);
+            parentCategories = preprocessCommonsCategories(parentCategories);
         } else {
             // If not found, query the WM API and save the results
             parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
@@ -726,13 +727,12 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-                        //matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
-                        matchingResults = "";
+                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
                         //Let's record all these categories that need to look for parents
-                        printCatsNeedParents(category);
+//                        printCatsNeedParents(category);
                     }
 
-                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
+//                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
                 }
 
             } catch (Exception exception) {

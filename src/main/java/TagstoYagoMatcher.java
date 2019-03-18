@@ -26,7 +26,7 @@ public class TagstoYagoMatcher {
 
     private static final String TRANSLATIONCACHEFILENAME = "translationCache.ser";
 
-    private static final String PARENTCATSCACHEFILENAME = "CachedParentCategories.ser";
+    private static final String PARENTCATSCACHEFILENAME = "./data/parentCats.tsv";
 
     private final static HashMap<String, HashSet<String>> yagoLowercase2Original = new HashMap<>();
 
@@ -40,15 +40,18 @@ public class TagstoYagoMatcher {
         File f = new File(PARENTCATSCACHEFILENAME);
         if (f.exists() && !f.isDirectory()) {
             try {
-                FileInputStream fileIn = new FileInputStream(PARENTCATSCACHEFILENAME);
-                ObjectInputStream in = new ObjectInputStream(fileIn);
-                ProcessBatchImageRunnable.setcachedParentCategories((ConcurrentHashMap<String, List<String>>) in.readObject());
-                in.close();
-                fileIn.close();
+                BufferedReader br = new BufferedReader((new FileReader(PARENTCATSCACHEFILENAME)));
+                ConcurrentHashMap<String, List<String>> catToParentCats= new ConcurrentHashMap<>();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] content = line.split("\t");
+                    if (content.length == 2 && catToParentCats.get(content[0]) == null) {
+                        catToParentCats.put(content[0], Arrays.asList(content[1].split("<>")));
+                    }
+                }
+                ProcessBatchImageRunnable.setcachedParentCategories(catToParentCats);
             } catch (IOException i) {
                 i.printStackTrace();
-            } catch (ClassNotFoundException c) {
-                logger.error("Can't read the serializable into cacheParentCategories");
             }
         } else {
             ProcessBatchImageRunnable.setcachedParentCategories(new ConcurrentHashMap<>());
@@ -66,7 +69,7 @@ public class TagstoYagoMatcher {
             } catch (IOException i) {
                 i.printStackTrace();
             } catch (ClassNotFoundException c) {
-                logger.error("Can't read the serializable into cacheParentCategories");
+                logger.error("Can't read the serializable into cacheTranslation");
             }
         } else {
             ProcessBatchImageRunnable.setCachedTranslation(new ConcurrentHashMap<>());
@@ -308,12 +311,41 @@ public class TagstoYagoMatcher {
         }
     }
 
+    private void appendLinetoFile(String strLine, String outputFileName){
+        try {
+            Writer output = new BufferedWriter(new FileWriter(outputFileName, true));
+            output.append(strLine);
+            output.append("\n");
+            output.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void writeCachedParentCategories() {
+        for (String key: ProcessBatchImageRunnable.getCachedParentCategories().keySet()) {
+            String lineParentCats = "";
+            List<String> cachedParentCategories = ProcessBatchImageRunnable.getCachedParentCategories().get(key);
+
+            if (cachedParentCategories.size() > 0) {
+                lineParentCats = cachedParentCategories.get(0);
+                for (int i = 1; i < cachedParentCategories.size(); i++) {
+                    lineParentCats = lineParentCats + "<>" + cachedParentCategories.get(i);
+                }
+            }
+            String lineToWrite = key + "\t" + lineParentCats;
+            appendLinetoFile(lineToWrite, "data/parentCats_new.tsv");
+        }
+    }
+
     private void startWorking(){
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
-        clearOutputfile("./output_cat2yago.tsv");
-        clearOutputfile("./aux_cat_needs_parents.tsv");
+        clearOutputfile("data/parentCats_new.tsv");
+//        clearOutputfile("./output_cat2yago.tsv");
+//        clearOutputfile("./aux_cat_needs_parents.tsv");
 
         String file_ImageNames = "./image_names.txt";
 
@@ -386,7 +418,7 @@ public class TagstoYagoMatcher {
 
         // serialize cache object
         serializeCacheObjects(ProcessBatchImageRunnable.getCachedTranslation(), "translationCache.ser");
-        serializeCacheObjects(ProcessBatchImageRunnable.getCachedParentCategories(), "CachedParentCategories.ser");
+        writeCachedParentCategories();
 
 
         System.out.println("Finished processing " + ProcessBatchImageRunnable.getCompletedCounter() + "/"+numofImages);

@@ -6,6 +6,8 @@ target/
 # ignore some yago native folders
 data/uwn4yago
 data/wordnetDomains
+data/parentCats.tsv
+data/parentCats_new.tsv
 
 *.log
 *.iml
@@ -22,6 +24,7 @@ CachedParentCategories.ser
 translationCache.ser
 
 aux_cat_needs_parents.tsv
+
 
 # ignore the image_names.txt
 image_names.txt
