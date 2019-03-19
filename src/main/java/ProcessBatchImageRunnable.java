@@ -483,7 +483,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             // Use local language detector
             if (TagstoYagoMatcher.getPROPERTIES().getProperty("useLocalLangDetector").equals("true")) {
 
-                // Only translate if all tokens are in foreign languages.
+                // Only translate if majority of tokens are in foreign languages.
                 if (lotsOfForeignWords(strip_original)) {
                     TextObject textObject = textObjectFactory.forText(strip_original);
                     Optional<LdLocale> langOptional = languageDetector.detect(textObject);
@@ -627,7 +627,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private String matchParentCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                        Set<String> allYagoEntities,
-                                       List<String> allMatchingResults,
+                                       List<String> allYagoEntitiesFormatParents,
                                        String category){
         List<String> parentMatchingResults = new ArrayList<>();
         String yago_match;
@@ -658,6 +658,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
             // Print results
             if (yago_match != null) {
+                parentMatchingResults.add(yago_match);
 
                 //prepare data to print to per_img txt
                 if (!allYagoEntities.contains(yago_match)){
@@ -666,8 +667,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                     // add the categories to yago_match
                     allYagoEntities.add(yago_match);
-
-                    parentMatchingResults.add(yago_match);
                 }
             }
         }
@@ -675,9 +674,11 @@ public class ProcessBatchImageRunnable implements Runnable {
         //  This block of code is only for evlauation purpose. Shouldn't be used in production
         if (!parentMatchingResults.isEmpty()) {
             parentMatchingResultsToOutput = parentMatchingResults.toString().replace("<","{").replace(">","}");
-            allMatchingResults.add("<" + parentMatchingResultsToOutput + ">");
-        } else {
-            allMatchingResults.add("<>");
+            if (parentMatchingResults.size()>1) {
+                allYagoEntitiesFormatParents.add("<" + parentMatchingResultsToOutput + ">");
+            } else {
+                allYagoEntitiesFormatParents.add(parentMatchingResults.get(0));
+            }
         }
 
         return parentMatchingResultsToOutput;
@@ -688,12 +689,12 @@ public class ProcessBatchImageRunnable implements Runnable {
      * Match all the categories
      * @param commonsMetadata The Commons Metadata, which includes the categories and descriptions and title of this images
      * @param allYagoEntities All the matched yago entities, to be output to output_per_img.txt
-     * @param allMatchingResults All the matched yago entities for categories, only for producing groundtruth data for coding
+     * @param allYagoEntitiesFormatParents All the matched yago entities for categories, only for producing groundtruth data for coding
      * @param allOriginalCategories The original categories that are matched, only for producing groundtruth data for coding
      */
     private void matchAllCategories(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                     Set<String> allYagoEntities,
-                                    List<String> allMatchingResults,
+                                    List<String> allYagoEntitiesFormatParents,
                                     List<String> allOriginalCategories){
         long startTime;
         long endTime;
@@ -715,9 +716,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                     // Print results
                     if (yago_match != null) {
-
-                        //prepare data to print to per_img txt
-                        allMatchingResults.add(yago_match);
+                        allYagoEntitiesFormatParents.add(yago_match);
                         matchingResults = yago_match.replaceAll("<","").replaceAll(">","");
                         if (!allYagoEntities.contains(yago_match)){
                             // print to per_tag txt
@@ -727,8 +726,8 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allMatchingResults, category);
-                        //Let's record all these categories that need to look for parents
+                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, category);
+                        //DEBUG: Let's record all these categories that need to look for parents
 //                        printCatsNeedParents(category);
                     }
 
@@ -849,21 +848,21 @@ public class ProcessBatchImageRunnable implements Runnable {
                     String yago_match;
 
                     //Record the matching_results
-                    List<String> allMatchingResults = new ArrayList<>();
+                    List<String> allYagoEntitiesFormatParents = new ArrayList<>();
                     List<String> allOriginalCategories = new ArrayList<>();
 
                     // Match all categories
-                    matchAllCategories(commonsMetadata, allYagoEntities, allMatchingResults, allOriginalCategories);
+                    matchAllCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, allOriginalCategories);
 
 
                     // If needed, match descriptions
                     if (allYagoEntities.isEmpty()) {
-                        matchDescription(commonsMetadata, allYagoEntities, allMatchingResults, allOriginalCategories);
+                        matchDescription(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, allOriginalCategories);
                     }
 
 
                     // Save categories info
-//                    String contentMatchingResults = String.join(", ", allMatchingResults);
+//                    String contentMatchingResults = String.join(", ", allYagoEntitiesFormatParents);
 //                    String contentOriginalCategories = String.join(", ", allOriginalCategories);
 //                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + contentOriginalCategories + "\t" + contentMatchingResults,"./output_groundtruth.tsv");
 
@@ -905,6 +904,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
                     incrementValidPhotoCounter();
                     appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntities.toString(),"./output_per_img.tsv");
+                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + original_title + "\t" + allYagoEntitiesFormatParents.toString(),"./output_per_img_parcat.tsv");
 
                     if (startedCounter % 1000 == 0) {
                         logger.info("Finished processing " + (startedCounter) + " | Current title: " + commonsMetadata.getOriginalTitle());

@@ -3,20 +3,25 @@ out/
 .idea/
 target/
 
+*.log
+*.iml
+
 # ignore some yago native folders
 data/uwn4yago
 data/wordnetDomains
 data/parentCats.tsv
 data/parentCats_new.tsv
 
-*.log
-*.iml
 
-google_api_key.json
+# ignore output file
 output_per_img.tsv
 output_per_tag.tsv
 output_groundtruth.tsv
 output_cat2yago.tsv
+output_per_img_parcat.tsv
+
+
+google_api_key.json
 config.properties
 log4j2.xml
 

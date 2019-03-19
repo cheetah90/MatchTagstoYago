@@ -329,10 +329,7 @@ public class TagstoYagoMatcher {
             List<String> cachedParentCategories = ProcessBatchImageRunnable.getCachedParentCategories().get(key);
 
             if (cachedParentCategories.size() > 0) {
-                lineParentCats = cachedParentCategories.get(0);
-                for (int i = 1; i < cachedParentCategories.size(); i++) {
-                    lineParentCats = lineParentCats + "<>" + cachedParentCategories.get(i);
-                }
+                lineParentCats = String.join("<>", cachedParentCategories);
             }
             String lineToWrite = key + "\t" + lineParentCats;
             appendLinetoFile(lineToWrite, "data/parentCats_new.tsv");
@@ -343,6 +340,7 @@ public class TagstoYagoMatcher {
         //clearOutputfile
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
+        clearOutputfile("./output_per_img_parcat.tsv");
         clearOutputfile("data/parentCats_new.tsv");
 //        clearOutputfile("./output_cat2yago.tsv");
 //        clearOutputfile("./aux_cat_needs_parents.tsv");
