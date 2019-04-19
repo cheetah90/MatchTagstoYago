@@ -24,7 +24,7 @@ public class TagstoYagoMatcher {
 
     private static final Logger logger = LogManager.getLogger(TagstoYagoMatcher.class);
 
-    private static final String TRANSLATIONCACHEFILENAME = "translationCache.ser";
+    private static final String TRANSLATIONCACHEFILENAME = "./data/translationCache.ser";
 
     private static final String PARENTCATSCACHEFILENAME = "./data/parentCats.tsv";
 
@@ -415,7 +415,7 @@ public class TagstoYagoMatcher {
         }
 
         // serialize cache object
-        serializeCacheObjects(ProcessBatchImageRunnable.getCachedTranslation(), "translationCache.ser");
+        serializeCacheObjects(ProcessBatchImageRunnable.getCachedTranslation(), "./data/translationCache.ser");
         writeCachedParentCategories();
 
 
