@@ -671,14 +671,9 @@ public class ProcessBatchImageRunnable implements Runnable {
             }
         }
 
-        //  This block of code is only for evlauation purpose. Shouldn't be used in production
         if (!parentMatchingResults.isEmpty()) {
             parentMatchingResultsToOutput = parentMatchingResults.toString().replace("<","{").replace(">","}");
-            if (parentMatchingResults.size()>1) {
-                allYagoEntitiesFormatParents.add("<" + parentMatchingResultsToOutput + ">");
-            } else {
-                allYagoEntitiesFormatParents.add(parentMatchingResults.get(0));
-            }
+            allYagoEntitiesFormatParents.add("<" + parentMatchingResultsToOutput + ">");
         }
 
         return parentMatchingResultsToOutput;
