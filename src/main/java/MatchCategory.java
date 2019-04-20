@@ -323,20 +323,6 @@ public class MatchCategory {
             if (isValidYagoItem(yagoitem, original_categoryName) && containsWithoutCapitalization(yagoitem, original_categoryName)) return (yagoitem);
         }
 
-        // deal with the parenthesis case
-        if (original_categoryName.contains("(")) {
-            yagoitem = matchInsideParenthesis(original_categoryName);
-            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
-        }
-
-        // If so far nothing is matched and there are only two words, try to match the non-trivial premodifier
-//        if (lower_category.toString().split(" ").length == 2 &&
-//                (lower_category.preModifier() != null) &&
-//                lower_category.preModifier().length() > 5) {
-//            yagoitem = directMatch(lower_category.preModifier());
-//            if (isValidYagoItem(yagoitem, original_categoryName) && containsWithoutCapitalization(yagoitem, original_categoryName)) {return yagoitem;}
-//        }
-
         return (null);
     }
 

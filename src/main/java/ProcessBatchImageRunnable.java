@@ -220,7 +220,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_", "wlm",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki", "media_created_by",
-            "rogers_fund", "serie",
+            "rogers_fund", "serie", "mérimée_with", "type_parameters",
             "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "_version", "_applicable", "possible", "featured_pictures", "svg", "nypl", "_wiki_", "anonymous", "categories"
     };
 
