@@ -217,7 +217,7 @@ public class ProcessBatchImageRunnable implements Runnable {
     private static final String[] BLACKLIST_CONTAINS_CATEGORIES ={"copyright", "license", "media_type", "file_format", "media_needing", "flickr", "self-published_work", "by_user",
             "_images", "_image", "panorami", "photos_by", "upload", "personality_rights_warning", "media_lacking", "'s_photo", "taken_by", "_deaths", "unsupported_object", "objects_with",
             "media_supported_by", "media_by", "media_from", "media_with", "pages_with_map", "media_contributed_by", "user:", "created_with", "(given_name)", "_births", "(surname)",
-            "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template_unknown", "_temp_", "department_of_", "supported_by_", "wlm",
+            "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template", "_temp_", "department_of_", "supported_by_", "wlm",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki", "media_created_by",
             "rogers_fund", "serie", "mérimée_with", "type_parameters",
