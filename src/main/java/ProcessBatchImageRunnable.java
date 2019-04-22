@@ -359,19 +359,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             //Split the category with (space)dash(space)
             if (current_category.contains("_-_")){
                 List<String> splitByDash = Arrays.asList(current_category.split("_-_"));
-
-                // If too many dashes, just add the first part
-                if (splitByDash.size() > 2) {
-                    additional_category.add(splitByDash.get(0));
-                } else {
-                    // If the second part is too short, just add the first part
-                    if (splitByDash.get(1).length() < 3) {
-                        additional_category.add(splitByDash.get(0));
-                    } else {
-                        additional_category.addAll(splitByDash);
-                    }
-                }
-
+                additional_category.add(splitByDash.get(0));
                 continue;
             }
 
