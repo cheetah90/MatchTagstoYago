@@ -126,6 +126,8 @@ public class MatchCategory {
             return directMatch("cultural_heritage_monument");
         } else if (category.contains("timber_framing")) {
             return directMatch("timber_framing");
+        } else if (category.contains("(ship")) {
+            return directMatch("ship");
         }
 
         return null;
@@ -508,7 +510,6 @@ public class MatchCategory {
                 }
             }
         }
-
 
 
         return null;
