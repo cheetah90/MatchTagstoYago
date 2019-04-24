@@ -504,8 +504,6 @@ public class ProcessBatchImageRunnable implements Runnable {
                 // If the orginal text has been cached
                 if (translationCachedResult != null) {
                     englishText = translationCachedResult;
-                    System.out.println("Got translation from cache!");
-                    System.out.println(strip_original + " is translated to " + translationCachedResult);
                 } else {
                     // If not cached, use the translation api
                     englishText = translateAPI.translate(strip_original, lang, "en");
