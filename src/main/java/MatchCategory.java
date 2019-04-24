@@ -126,8 +126,6 @@ public class MatchCategory {
             return directMatch("cultural_heritage_monument");
         } else if (category.contains("timber_framing")) {
             return directMatch("timber_framing");
-        } else if (category.contains("(ship")) {
-            return directMatch("ship");
         }
 
         return null;
@@ -177,30 +175,14 @@ public class MatchCategory {
         // fix the tailing "_"
         current_categoryName = current_categoryName.replaceAll("_", " ").trim().replaceAll(" ", "_");
         // try direct match
-        yago_match = parseAndMatch(current_categoryName);
+        yago_match = directMatch(current_categoryName);
+        if (isValidYagoItem(yago_match, current_categoryName)) return (yago_match);
 
-        return yago_match;
-    }
+        return "";
 
-    /**
-     * First match the text without parenthesis and then the text inside the parenthesis
-     * e.g. https://commons.wikimedia.org/wiki/File:Milevsko_okres_P%C3%ADsek_(3.).jpg
-     * @param category the category to be matched
-     * @return yago_match matching results
-     */
-    private String matchInsideParenthesis(String category){
-        String yago_match = null;
-
-        // First match the string inside parenthesis
-        Matcher m = Pattern.compile("\\s*\\([^\\)]*\\)\\s*").matcher(category);
-        while (m.find()) {
-            // Get rid of the parenthesis
-            String content = m.group(0);
-            content = content.substring(2, content.length()-1);
-            yago_match = directMatch(content);
-        }
-
-        return yago_match;
+//        yago_match = matchNounGroup2Yago(current_categoryName);
+//
+//        return yago_match;
     }
 
     // Wrong Acronym = an acronym (all uppercase letters) that does not exist in the original text
@@ -218,6 +200,7 @@ public class MatchCategory {
                 && !yagoitem.contains("wordnet_picture")
                 && !yagoitem.contains("wikicat_Years")
                 && !yagoitem.contains("wordnet_part")
+                && !yagoitem.contains("wordnet_class_")
                 && !yagoitem.contains("wordnet_detail")
                 && !yagoitem.contains("wordnet_second")
                 && !yagoitem.contains("wordnet_object")
@@ -259,7 +242,10 @@ public class MatchCategory {
         String lower_stemmedHead;
         if (lower_category.head().equals("horses")) {
             lower_stemmedHead = "horse";
-        } else {
+        } else if (lower_category.head().equals("exercises")) {
+            lower_stemmedHead = "exercise";
+        }
+        else {
             lower_stemmedHead = PlingStemmer.stem(lower_category.head());
         }
 
@@ -374,7 +360,7 @@ public class MatchCategory {
         // If it contains parenthesis, first match things outside parenthesis
         if (original_categoryName.contains("(")){
             yagoitem = matchWithoutParenthesis(original_categoryName);
-            if (isValidYagoItem(yagoitem, original_categoryName)) {return yagoitem;}
+            return yagoitem;
         }
 
         // If it contains comma, match the first phrase
@@ -393,7 +379,7 @@ public class MatchCategory {
         if (lastWord.length()==4 && lastWord.matches("[0-9]+") && (lastWord.startsWith("20") || lastWord.startsWith("19"))) {
             String leftOverString = String.join("_", Arrays.copyOf(category_words, category_words.length-1));
             if (leftOverString.endsWith("in")) {
-                leftOverString = leftOverString.substring(0,leftOverString.length()-2);
+                leftOverString = leftOverString.substring(0,leftOverString.length()-3);
             }
             return matchNounGroup2Yago(leftOverString);
         } else {
