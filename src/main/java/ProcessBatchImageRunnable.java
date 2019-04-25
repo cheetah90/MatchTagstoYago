@@ -211,7 +211,7 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     private static final String[] BLACKLIST_STARTWITH_CATEGORIES = { "commons", "cc-", "pd_", "categories_", "items_with", "attribution_", "gfdl", "pd-", "file_", "files_",
             "photos_of_", "photos,_created_", "media_missing_", "projet_québec", "work_", "scans_", "scan_", "pcl", "images_", "image_", "gpl", "wiki", "glam_", "fop-", "fop_",
-            "location_", "executive_office_of_the_president", "with_trademark", "hidden_categories", "godl"
+            "location_", "executive_office_of_the_president", "with_trademark", "hidden_categories", "godl", "deceased_people_by"
     };
 
     private static final String[] BLACKLIST_CONTAINS_CATEGORIES ={"copyright", "license", "media_type", "file_format", "media_needing", "flickr", "self-published_work", "by_user",
@@ -220,7 +220,7 @@ public class ProcessBatchImageRunnable implements Runnable {
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template", "_temp_", "department_of_", "supported_by_", "wlm", "unassessed_qi",
             "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_", "needed",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki", "media_created_by",
-            "rogers_fund", "serie", "mérimée_with", "type_parameters", "pictures", "redirect",
+            "rogers_fund", "serie", "mérimée_with", "type_parameters", "pictures", "redirect", "dick_fund","people_by_name",
             "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "_version", "_applicable", "possible", "featured_pictures", "svg", "nypl", "_wiki_", "anonymous", "categories"
     };
 
