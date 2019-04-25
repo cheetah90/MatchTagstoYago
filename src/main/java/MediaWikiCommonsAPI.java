@@ -132,6 +132,8 @@ public class MediaWikiCommonsAPI {
                 }
             }
 
+            logger.info("Query MediaWiki API for parent categories.");
+
 
         } catch (IOException exception){
             logger.error("Error: can't accessing URL: " + requestURL);
