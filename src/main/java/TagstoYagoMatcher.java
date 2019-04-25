@@ -349,7 +349,7 @@ public class TagstoYagoMatcher {
         clearOutputfile("./output_per_tag.tsv");
         clearOutputfile("./output_per_img.tsv");
         clearOutputfile("./output_per_img_parcat.tsv");
-        clearOutputfile("./output_cat2yago.tsv");
+//        clearOutputfile("./output_cat2yago.tsv");
 //        clearOutputfile("./aux_cat_needs_parents.tsv");
 
         String file_ImageNames = "./image_names.txt";
