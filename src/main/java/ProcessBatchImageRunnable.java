@@ -705,10 +705,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-//                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, category);
+                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, category);
 
-                        //DEBUG: Let's record all these categories that need to look for parents
-                        printCatsNeedParents(category);
+//                        //DEBUG: Let's record all these categories that need to look for parents
+//                        printCatsNeedParents(category);
                     }
 
 //                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
