@@ -90,6 +90,7 @@ public class MicrosoftTranslatorAPI implements Translator {
             String strResponse = getResponse(requestURL, textInOriginalLang);
             JSONObject obj = new JSONArray(strResponse).getJSONObject(0);
             strResult = obj.getJSONArray("translations").getJSONObject(0).getString("text");
+            logger.info("Microsoft Translator API succeed! Translate: " + textInOriginalLang + " into: " + strResult);
 
         } catch (IOException exception) {
             logger.error("Error: Microsoft Translator API failed on requesting: " + requestURL );
