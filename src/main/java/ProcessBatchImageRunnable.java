@@ -735,69 +735,6 @@ public class ProcessBatchImageRunnable implements Runnable {
         }
     }
 
-    private void translateAllCategories(){
-        File f = new File("./data/cat_to_translate.txt");
-        if (f.exists() && !f.isDirectory()) {
-            try {
-                BufferedReader br = new BufferedReader((new FileReader("./data/cat_to_translate.txt")));
-                ConcurrentHashMap<String, List<String>> catToParentCats= new ConcurrentHashMap<>();
-                String line;
-                int counter = 0;
-
-                // Initialize the translator api
-                switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
-                    case "microsoft": {
-                        this.translateAPI = new MicrosoftTranslatorAPI();
-                        break;
-                    }
-                    case "google": {
-                        this.translateAPI = new GoogleFreeTranslateAPI();
-                        break;
-                    }
-                }
-
-                while ((line = br.readLine()) != null) {
-                    if (counter % 100 == 0) {
-                        System.out.println("Finished " + counter);
-                    }
-
-                    String lang = "en";
-
-                    // Only translate if majority of tokens are in foreign languages.
-                    if (lotsOfForeignWords(line)) {
-                        TextObject textObject = textObjectFactory.forText(line);
-                        Optional<LdLocale> langOptional = languageDetector.detect(textObject);
-                        lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
-
-                        // translate oc to fr
-                        lang = lang.equals("oc")?"fr":lang;
-
-                        // translate br to en
-                        if (needHardCodetoEN(lang)) {
-                            lang = "en";
-                        }
-                    }
-
-
-                    // Translate the text if not in English
-                    if (! lang.equals("en")) {
-                        // If not cached, use the translation api
-                        String englishText = translateAPI.translate(line, lang, "en");
-                        // Synchronize the put operation
-                        ProcessBatchImageRunnable.cachedTranslation.put(line, englishText);
-                        appendLinetoFile(line+"\t"+englishText, "translateResults.tsv");
-                        counter++;
-
-                    }
-                }
-                ProcessBatchImageRunnable.setcachedParentCategories(catToParentCats);
-            } catch (IOException i) {
-                i.printStackTrace();
-            }
-        }
-
-    }
-
     private void matchDescription(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                   Set<String> allYagoEntities,
                                   List<String> allMatchingResults,
@@ -855,8 +792,6 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     public void run() {
         long startTime_batch = System.currentTimeMillis();
-
-        translateAllCategories();
 
         try {
             long startTime;
