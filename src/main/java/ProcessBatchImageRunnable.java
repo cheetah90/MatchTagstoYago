@@ -218,9 +218,9 @@ public class ProcessBatchImageRunnable implements Runnable {
             "_images", "_image", "panorami", "photos_by", "upload", "personality_rights_warning", "media_lacking", "'s_photo", "taken_by", "_deaths", "unsupported_object", "objects_with",
             "media_supported_by", "media_by", "media_from", "media_with", "pages_with_map", "media_contributed_by", "user:", "created_with", "(given_name)", "_births", "(surname)",
             "photograph", "wikidata", "taken_with", "robert_d._ward", "nike_specific_patterns", "template", "_temp_", "department_of_", "supported_by_", "wlm", "unassessed_qi",
-            "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_",
+            "_files_", "_file_", "lgpl", "protected_", "wikipedia", "photos_from", "media_donated_by", "nature_neighbors", "_location",  "photos,_created_by_", "project_", "needed",
             "djvu_", "gerard_dukker", "wikimania", "translation_possible", "attribute_", "wikiafrica_", "_view_", "_views_", "_wikimedia_event", "_tamilwiki", "media_created_by",
-            "rogers_fund", "serie", "mérimée_with", "type_parameters",
+            "rogers_fund", "serie", "mérimée_with", "type_parameters", "pictures", "redirect",
             "elef_milim", "_work_", "_scan_", "_by_raboe", "available", "_version", "_applicable", "possible", "featured_pictures", "svg", "nypl", "_wiki_", "anonymous", "categories"
     };
 
@@ -487,11 +487,7 @@ public class ProcessBatchImageRunnable implements Runnable {
                 }
 
             } else {
-                try {
-                    lang = translateAPI.detect(strip_original);
-                } catch (TranslateException exception) {
-                    lang = "en";
-                }
+                lang = "en";
             }
 
             // Translate the text if not in English
@@ -739,6 +735,69 @@ public class ProcessBatchImageRunnable implements Runnable {
         }
     }
 
+    private void translateAllCategories(){
+        File f = new File("./data/cat_to_translate.txt");
+        if (f.exists() && !f.isDirectory()) {
+            try {
+                BufferedReader br = new BufferedReader((new FileReader("./data/cat_to_translate.txt")));
+                ConcurrentHashMap<String, List<String>> catToParentCats= new ConcurrentHashMap<>();
+                String line;
+                int counter = 0;
+
+                // Initialize the translator api
+                switch (TagstoYagoMatcher.getPROPERTIES().getProperty("TranslationAPI")) {
+                    case "microsoft": {
+                        this.translateAPI = new MicrosoftTranslatorAPI();
+                        break;
+                    }
+                    case "google": {
+                        this.translateAPI = new GoogleFreeTranslateAPI();
+                        break;
+                    }
+                }
+
+                while ((line = br.readLine()) != null) {
+                    if (counter % 100 == 0) {
+                        System.out.println("Finished " + counter);
+                    }
+
+                    String lang = "en";
+
+                    // Only translate if majority of tokens are in foreign languages.
+                    if (lotsOfForeignWords(line)) {
+                        TextObject textObject = textObjectFactory.forText(line);
+                        Optional<LdLocale> langOptional = languageDetector.detect(textObject);
+                        lang = langOptional.isPresent()?langOptional.get().getLanguage():"en";
+
+                        // translate oc to fr
+                        lang = lang.equals("oc")?"fr":lang;
+
+                        // translate br to en
+                        if (needHardCodetoEN(lang)) {
+                            lang = "en";
+                        }
+                    }
+
+
+                    // Translate the text if not in English
+                    if (! lang.equals("en")) {
+                        // If not cached, use the translation api
+                        String englishText = translateAPI.translate(line, lang, "en");
+                        // Synchronize the put operation
+                        ProcessBatchImageRunnable.cachedTranslation.put(line, englishText);
+                        appendLinetoFile(line+"\t"+englishText, "translateResults.tsv");
+                        counter++;
+
+                    }
+                }
+                ProcessBatchImageRunnable.setcachedParentCategories(catToParentCats);
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
+        }
+
+    }
+
     private void matchDescription(MediaWikiCommonsAPI.CommonsMetadata commonsMetadata,
                                   Set<String> allYagoEntities,
                                   List<String> allMatchingResults,
@@ -796,6 +855,8 @@ public class ProcessBatchImageRunnable implements Runnable {
 
     public void run() {
         long startTime_batch = System.currentTimeMillis();
+
+        translateAllCategories();
 
         try {
             long startTime;

@@ -66,6 +66,7 @@ public class TagstoYagoMatcher {
                 ProcessBatchImageRunnable.setCachedTranslation((ConcurrentHashMap<String, String>) in.readObject());
                 in.close();
                 fileIn.close();
+
             } catch (IOException i) {
                 i.printStackTrace();
             } catch (ClassNotFoundException c) {
