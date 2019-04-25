@@ -624,14 +624,10 @@ public class ProcessBatchImageRunnable implements Runnable {
             parentCategories = cachedParentCategories.get(category);
             parentCategories = preprocessCommonsCategories(parentCategories);
         } else {
-            //DEBUG: Let's record all these categories that need to look for parents
-            printCatsNeedParents(category);
-            parentCategories = new ArrayList<>();
-
-//            // If not found, query the WM API and save the results
-//            parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
-//            parentCategories = preprocessCommonsCategories(parentCategories);
-//            cachedParentCategories.put(category, parentCategories);
+            // If not found, query the WM API and save the results
+            parentCategories = MediaWikiCommonsAPI.getParentCategories(category);
+            parentCategories = preprocessCommonsCategories(parentCategories);
+            cachedParentCategories.put(category, parentCategories);
         }
 
         ProcessBatchImageRunnable.TranslationResults translationResults;
@@ -709,7 +705,10 @@ public class ProcessBatchImageRunnable implements Runnable {
                             allYagoEntities.add(yago_match);
                         }
                     } else {
-                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, category);
+//                        matchingResults = matchParentCategories(commonsMetadata, allYagoEntities, allYagoEntitiesFormatParents, category);
+
+                        //DEBUG: Let's record all these categories that need to look for parents
+                        printCatsNeedParents(category);
                     }
 
 //                    appendLinetoFile(commonsMetadata.getPageID() + "\t" + commonsMetadata.getOriginalTitle() + "\t" + category + "\t" + matchingResults, "./output_cat2yago.tsv");
